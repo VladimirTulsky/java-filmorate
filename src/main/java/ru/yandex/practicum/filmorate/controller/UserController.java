@@ -14,6 +14,7 @@ import java.util.Map;
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
+    private int idCounter = 1;
     Map<Integer, User> users = new HashMap<>();
 
     @GetMapping
@@ -25,17 +26,20 @@ public class UserController {
     @PostMapping
     public User create(@RequestBody User user) {
         validate(user);
+        checkUsers(user);
         if (users.containsKey(user.getId()))
             throw new ValidationException("Такой пользователь уже существует");
-        //TODO разобраться с проверками до конца
 
-        users.put(user.getId(), user);
+        users.put(idCounter++, user);
         return user;
     }
 
     @PutMapping
     public User put(@RequestBody User user) {
         validate(user);
+        if (!users.containsKey(user.getId())) throw new ValidationException("Пользвоателя не существует");
+        users.remove(user.getId());
+        checkUsers(user);
         users.put(user.getId(), user);
         return user;
     }
@@ -49,5 +53,14 @@ public class UserController {
         if (user.getName().isBlank()) user.setName(user.getLogin());
         if (user.getBirthday().isAfter(LocalDate.now()))
             throw new ValidationException("Ты еще не родился, пшел вон");
+    }
+
+    private void checkUsers(@RequestBody User user) {
+        Collection<User> userCollection = users.values();
+        for (User user1 : userCollection) {
+            if (user.getLogin().equals(user1.getLogin()) || user.getEmail().equals(user1.getEmail()) ) {
+                throw new ValidationException("Пользователь с таким email или login уже существует");
+            }
+        }
     }
 }
