@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,9 +25,8 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) {
         validate(film);
-        checkFilm(film);
         film.setId(filmId++);
 
         films.put(film.getId(), film);
@@ -35,26 +35,18 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film put(@RequestBody Film film) {
-        validate(film);
+    public Film put(@Valid @RequestBody Film film) {
         if (!films.containsKey(film.getId())) throw new ValidationException("Такого фильма нет");
         films.remove(film.getId());
-        checkFilm(film);
+        validate(film);
         films.put(film.getId(), film);
         log.info("Информация о фильме {} обновлена", film.getName());
         return film;
     }
 
-    private void validate(@RequestBody Film film) {
-        if (film.getName() == null || film.getName().isBlank())
-            throw new ValidationException("Добавьте название фильма");
-        if (film.getReleaseDate().isBefore(FIRST_FILM_DATE) || film.getDuration() < 0)
-            throw new ValidationException("В то время кино еще не было или продолжительность неверная");
-        if (film.getDescription().length() > 200)
-            throw new ValidationException("Слишком длинное описание");
-    }
-
-    private void checkFilm(@RequestBody Film film) {
+    private void validate(@Valid @RequestBody Film film) {
+        if (film.getReleaseDate().isBefore(FIRST_FILM_DATE))
+            throw new ValidationException("В то время кино еще не было");
         Collection<Film> filmCollection = films.values();
         for (Film fl : filmCollection) {
             if (film.getName().equals(fl.getName()) && film.getReleaseDate().equals(fl.getReleaseDate()))
