@@ -27,7 +27,6 @@ public class UserController {
     public User create(@Valid @RequestBody User user) {
         validate(user);
         user.setId(userId++);
-
         users.put(user.getId(), user);
         log.info("Добавлен пользователь с логином {}", user.getLogin());
         return user;
@@ -50,9 +49,8 @@ public class UserController {
             throw new ValidationException("Некорректная дата рождения");
         Collection<User> userCollection = users.values();
         for (User us : userCollection) {
-            if (user.getLogin().equals(us.getLogin()) || user.getEmail().equals(us.getEmail()) ) {
+            if (user.getLogin().equals(us.getLogin()) || user.getEmail().equals(us.getEmail()))
                 throw new ValidationException("Пользователь с таким email или login уже существует");
-            }
         }
     }
 }
