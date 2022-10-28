@@ -41,7 +41,7 @@ public class UserController {
         return user;
     }
 
-    private void validate(@Valid @RequestBody User user) {
+    private void validate(User user) {
         if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
         Collection<User> userCollection = users.values();
         if (userCollection.stream().anyMatch(us -> us.getLogin().equals(user.getLogin())
