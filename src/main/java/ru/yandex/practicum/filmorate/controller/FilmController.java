@@ -48,9 +48,8 @@ public class FilmController {
         if (film.getReleaseDate().isBefore(FIRST_FILM_DATE))
             throw new ValidationException("В то время кино еще не было");
         Collection<Film> filmCollection = films.values();
-        for (Film fl : filmCollection) {
-            if (film.getName().equals(fl.getName()) && film.getReleaseDate().equals(fl.getReleaseDate()))
+        if (filmCollection.stream().anyMatch(fl -> fl.getName().equals(film.getName())
+            && fl.getReleaseDate().equals(film.getReleaseDate())))
                 throw new ValidationException("Такой фильм уже есть");
-        }
     }
 }

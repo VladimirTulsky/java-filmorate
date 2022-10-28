@@ -7,9 +7,7 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @Slf4j
@@ -46,9 +44,8 @@ public class UserController {
     private void validate(@Valid @RequestBody User user) {
         if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
         Collection<User> userCollection = users.values();
-        for (User us : userCollection) {
-            if (user.getLogin().equals(us.getLogin()) || user.getEmail().equals(us.getEmail()))
-                throw new ValidationException("Пользователь с таким email или login уже существует");
-        }
+        if (userCollection.stream().anyMatch(us -> us.getLogin().equals(user.getLogin())
+                || us.getEmail().equals(user.getEmail())))
+            throw new ValidationException("Пользователь с таким email или login уже существует");
     }
 }
