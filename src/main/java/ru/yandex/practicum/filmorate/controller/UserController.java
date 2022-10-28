@@ -45,8 +45,6 @@ public class UserController {
 
     private void validate(@Valid @RequestBody User user) {
         if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
-        if (user.getBirthday().isAfter(LocalDate.now()))
-            throw new ValidationException("Некорректная дата рождения");
         Collection<User> userCollection = users.values();
         for (User us : userCollection) {
             if (user.getLogin().equals(us.getLogin()) || user.getEmail().equals(us.getEmail()))
