@@ -14,7 +14,7 @@ import java.util.*;
 @RequestMapping("/users")
 public class UserController {
     private int userId = 1;
-    private final Map<Integer, User> users = new HashMap<>();
+    protected final Map<Integer, User> users = new HashMap<>();
 
     @GetMapping
     public Collection<User> findAll() {
@@ -41,7 +41,7 @@ public class UserController {
         return user;
     }
 
-    private void validate(User user) {
+    void validate(User user) {
         if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
         Collection<User> userCollection = users.values();
         if (userCollection.stream().anyMatch(us -> us.getLogin().equals(user.getLogin())

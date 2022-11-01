@@ -17,7 +17,7 @@ import java.util.Map;
 public class FilmController {
     private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
     private int filmId = 1;
-    private final Map<Integer, Film> films = new HashMap<>();
+    protected final Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -44,7 +44,7 @@ public class FilmController {
         return film;
     }
 
-    private void validate(Film film) {
+    void validate(Film film) {
         if (film.getReleaseDate().isBefore(FIRST_FILM_DATE))
             throw new ValidationException("В то время кино еще не было");
         Collection<Film> filmCollection = films.values();
