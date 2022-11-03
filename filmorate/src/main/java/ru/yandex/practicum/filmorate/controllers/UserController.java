@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -14,11 +15,6 @@ import java.util.HashMap;
 public class UserController {
 
     HashMap<Integer, User> users = new HashMap<>();
-    private int id = 0;
-
-    private int makeId() {
-        return id++;
-    }
 
     @GetMapping("/users")
     public HashMap<Integer, User> getUsers() {
@@ -74,7 +70,8 @@ public class UserController {
         return user;
     }
 
-    private User validateLogin(User user) throws ValidationException {
+    @SneakyThrows
+    private User validateLogin(User user) {
         if (user.getLogin().contains(" ")) {
             log.info("Пробел в поле login");
             throw new ValidationException("В поле логин не должно быть пробелов");
