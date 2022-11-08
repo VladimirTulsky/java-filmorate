@@ -31,7 +31,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        userService.validate(user);
+        validate(user);
         checkUsers(user);
         user.setId(userId++);
 
@@ -44,7 +44,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User put(User user) {
         if (!users.containsKey(user.getId()))
             throw new ValidationException("Пользователя не существует, необходима регистрация нового пользователя");
-        userService.validate(user);
+        validate(user);
         users.put(user.getId(), user);
         log.info("Информация о пользователе {} обновлена", user.getLogin());
         return user;
@@ -60,6 +60,10 @@ public class InMemoryUserStorage implements UserStorage {
         User user = users.get(id);
         users.remove(id);
         return user;
+    }
+
+    private void validate(User user) {
+        if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
     }
 
     private void checkUsers(User user) {

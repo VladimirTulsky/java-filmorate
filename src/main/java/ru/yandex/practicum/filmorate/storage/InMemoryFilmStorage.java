@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,8 @@ import java.util.Map;
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
+
+    private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
 
     protected final Map<Integer, Film> films = new HashMap<>();
 
@@ -33,7 +36,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        filmService.validate(film);
+        validate(film);
         checkFilms(film);
         film.setId(filmId++);
 
@@ -45,7 +48,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film put(Film film) {
         if (!films.containsKey(film.getId())) throw new ValidationException("Такого фильма нет");
-        filmService.validate(film);
+        validate(film);
 
         films.put(film.getId(), film);
         log.info("Информация о фильме {} обновлена", film.getName());
@@ -64,6 +67,10 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
+    private void validate(Film film) {
+        if (film.getReleaseDate().isBefore(FIRST_FILM_DATE))
+            throw new ValidationException("В то время кино еще не было");
+    }
 
     private void checkFilms(Film film) {
         if (findAll().stream().anyMatch(fl -> fl.getName().equals(film.getName())
