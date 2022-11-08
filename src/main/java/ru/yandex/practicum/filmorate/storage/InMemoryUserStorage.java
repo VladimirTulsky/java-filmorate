@@ -18,12 +18,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     private int userId = 1;
 
-    UserService userService;
-
-    public InMemoryUserStorage(UserService userService) {
-        this.userService = userService;
-    }
-
     @Override
     public Collection<User> findAll() {
         return users.values();

@@ -22,13 +22,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private int filmId = 1;
 
-    FilmService filmService;
-
-    @Autowired
-    public InMemoryFilmStorage(FilmService filmService) {
-        this.filmService = filmService;
-    }
-
     @Override
     public Collection<Film> findAll() {
         return films.values();
