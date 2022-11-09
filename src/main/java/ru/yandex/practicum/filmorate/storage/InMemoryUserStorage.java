@@ -2,9 +2,9 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.InternalException;
+import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,9 +14,13 @@ import java.util.Map;
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
 
-    protected final Map<Integer, User> users = new HashMap<>();
-
+    private final Map<Integer, User> users = new HashMap<>();
     private int userId = 1;
+
+    @Override
+    public Map<Integer, User> getUsers() {
+        return users;
+    }
 
     @Override
     public Collection<User> findAll() {
@@ -28,24 +32,26 @@ public class InMemoryUserStorage implements UserStorage {
         validate(user);
         checkUsers(user);
         user.setId(userId++);
-
-        users.put(user.getId(), user);
         log.info("Добавлен пользователь с логином {}", user.getLogin());
+        users.put(user.getId(), user);
+
         return user;
     }
 
     @Override
-    public User put(User user) {
-        if (!users.containsKey(user.getId()))
-            throw new ValidationException("Пользователя не существует, необходима регистрация нового пользователя");
+    public User update(User user) {
+        if (!getUsers().containsKey(user.getId()))
+            throw new ObjectNotFoundException("Пользователя не существует, необходима регистрация нового пользователя");
         validate(user);
         users.put(user.getId(), user);
         log.info("Информация о пользователе {} обновлена", user.getLogin());
+
         return user;
     }
 
     @Override
     public User getById(int id) {
+
         return users.get(id);
     }
 
@@ -53,16 +59,18 @@ public class InMemoryUserStorage implements UserStorage {
     public User deleteById(int id) {
         User user = users.get(id);
         users.remove(id);
+
         return user;
     }
 
-    private void validate(User user) {
+    public void validate(User user) {
         if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
     }
 
-    private void checkUsers(User user) {
-        if (users.values().stream().anyMatch(us -> us.getLogin().equals(user.getLogin())
+    public void checkUsers(User user) {
+        if (findAll().stream().anyMatch(us -> us.getLogin().equals(user.getLogin())
                 || us.getEmail().equals(user.getEmail())))
-            throw new ValidationException("Пользователь с таким email или login уже существует");
+            throw new InternalException("Пользователь с таким email или login уже существует");
     }
+
 }
