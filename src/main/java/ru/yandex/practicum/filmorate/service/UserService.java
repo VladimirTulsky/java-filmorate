@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
 
-    UserStorage userStorage;
+    private final UserStorage userStorage;
 
     @Autowired
     public UserService(UserStorage userStorage) {
