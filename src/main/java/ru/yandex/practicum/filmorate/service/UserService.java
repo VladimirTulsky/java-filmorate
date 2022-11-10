@@ -82,8 +82,9 @@ public class UserService {
         if (!userStorage.getUsers().containsKey(id)) throw new ObjectNotFoundException("Пользователь не найден");
         log.info("Запрос получения списка друзей пользователя {} выполнен", userStorage.getById(id).getName());
 
-        return userStorage.getById(id).getFriends().stream().map(friend ->
-                userStorage.getById(friend)).collect(Collectors.toList());
+        return userStorage.getById(id).getFriends().stream()
+                .map(userStorage::getById)
+                .collect(Collectors.toList());
     }
 
     public List<User> getCommonFriendsList(int firstId, int secondId) {
