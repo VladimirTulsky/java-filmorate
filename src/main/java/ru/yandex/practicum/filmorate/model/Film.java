@@ -11,9 +11,10 @@ import java.util.Set;
 public class Film {
 
     private Set<Integer> usersLikes = new HashSet<>();
-    @NotNull
+    @PositiveOrZero
     private int id;
     @NotBlank(message = "Некорректное название фильма")
+    @Size(max = 60, message = "Слишком длинное название фильма")
     private final String name;
     @NotNull(message = "Отсутствует описание фильма")
     @Size(min = 1, max = 200, message = "Описание превышает максимальный размер(200символов)")

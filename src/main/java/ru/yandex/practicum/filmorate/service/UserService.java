@@ -8,9 +8,7 @@ import ru.yandex.practicum.filmorate.exception.InternalException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,8 +16,6 @@ import java.util.stream.Collectors;
 public class UserService {
 
     UserStorage userStorage;
-
-    private int userId = 1;
 
     @Autowired
     public UserService(UserStorage userStorage) {

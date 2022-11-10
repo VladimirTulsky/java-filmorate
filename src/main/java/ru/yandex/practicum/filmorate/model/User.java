@@ -11,13 +11,15 @@ import java.util.Set;
 public class User {
 
     private Set<Integer> friends = new HashSet<>();
-    @NotNull
+    @PositiveOrZero
     private int id;
     @NotBlank(message = "Отсутствует email")
     @Email(message = "Некорректный email")
+    @Size(max = 20)
     private final String email;
     @NotNull(message = "Отсутствует логин")
     @Pattern(regexp = "\\S+", message = "Логин содержит пробелы")
+    @Size(min = 1, max = 20)
     private final String login;
     private String name;
     @NotNull(message = "Не указана дата рождения")

@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
 
-    private final Map<Integer, Film> films = new HashMap<>();
+    private static final Map<Integer, Film> films = new HashMap<>();
     private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
     private int filmId = 1;
 
