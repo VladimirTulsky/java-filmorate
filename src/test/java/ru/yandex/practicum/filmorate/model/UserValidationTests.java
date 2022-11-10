@@ -58,7 +58,7 @@ public class UserValidationTests {
         user.setName("Vladimir");
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
-        assertThat(violations.size()).isEqualTo(1);
+        assertThat(violations.size()).isEqualTo(2);
     }
 
     @Test
