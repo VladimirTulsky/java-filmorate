@@ -50,6 +50,15 @@ public class UserControllerTests {
     }
 
     @Test
+    void findAllTest() throws Exception {
+
+        mockMvc.perform(
+                        get("/users")
+                )
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void addUser() throws Exception {
         User user = new User("vladimir@test.ru", "vladimir21", LocalDate.of(1990, 5, 6));
         user.setName("Vladimir");

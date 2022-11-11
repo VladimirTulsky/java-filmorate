@@ -52,6 +52,15 @@ public class FilmControllerTests {
     }
 
     @Test
+    void findAllTest() throws Exception {
+
+        mockMvc.perform(
+                get("/films")
+        )
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void addFilm() throws Exception {
         Film film = new Film("Film", "good film", LocalDate.of(2020, 5, 5), 120);
 
