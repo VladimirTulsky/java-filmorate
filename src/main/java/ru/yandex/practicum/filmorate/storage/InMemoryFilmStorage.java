@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.InternalException;
@@ -18,6 +19,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private static final Map<Integer, Film> films = new HashMap<>();
     private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
+    @Setter
     private int filmId = 1;
 
     @Override

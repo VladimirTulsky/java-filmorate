@@ -46,7 +46,7 @@ public class UserService {
 
     public User deleteById(int id) {
         if (!userStorage.getUsers().containsKey(id))
-            throw new ObjectNotFoundException("Пользователь не найден, невозможно удалить.");
+            throw new ObjectNotFoundException("Пользователь не найден, невозможно удалить");
         log.info("Пользователь с id {} удален", id);
 
         return userStorage.deleteById(id);
