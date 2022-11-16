@@ -183,7 +183,7 @@ public class FilmControllerTests {
                         delete("/films/1")
                 )
                 .andExpect(status().isOk())
-                .andExpect(result -> assertEquals(0, filmStorage.getFilms().size()));
+                .andExpect(result -> assertTrue(filmStorage.getFilms().isEmpty()));
     }
 
     @Test
@@ -269,9 +269,8 @@ public class FilmControllerTests {
         mockMvc.perform(
                         get("/films/popular?count=2")
                 )
-                .andExpect(status().isOk());
-        assertEquals(filmService.getBestFilms(2).get(0), film2);
-        assertEquals(filmService.getBestFilms(2).get(1), film);
+                .andExpect(status().isOk())
+                .andExpect(result -> assertEquals(filmService.getBestFilms(2).get(0), film2))
+                .andExpect(result -> assertEquals(filmService.getBestFilms(2).get(1), film));
     }
-
 }

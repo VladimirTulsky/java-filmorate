@@ -15,13 +15,13 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -204,9 +204,9 @@ public class UserControllerTests {
         mockMvc.perform(
                         put("/users/1/friends/2")
                 )
-                .andExpect(status().isOk());
-        assertEquals(1, userStorage.getById(1).getFriends().size());
-        assertEquals(1, userStorage.getById(2).getFriends().size());
+                .andExpect(status().isOk())
+                .andExpect(result -> assertTrue(userStorage.getById(1).getFriends().contains(2)))
+                .andExpect(result -> assertTrue(userStorage.getById(2).getFriends().contains(1)));
     }
 
     @Test
@@ -249,9 +249,9 @@ public class UserControllerTests {
         mockMvc.perform(
                         delete("/users/1/friends/2")
                 )
-                .andExpect(status().isOk());
-        assertEquals(0, userStorage.getById(1).getFriends().size());
-        assertEquals(0, userStorage.getById(2).getFriends().size());
+                .andExpect(status().isOk())
+                .andExpect(result -> assertTrue(userStorage.getById(1).getFriends().isEmpty()))
+                .andExpect(result -> assertTrue(userStorage.getById(2).getFriends().isEmpty()));
     }
 
     @Test
@@ -293,9 +293,10 @@ public class UserControllerTests {
         mockMvc.perform(
                         get("/users/1/friends")
                 )
-                .andExpect(status().isOk());
-        assertEquals(1, userService.getFriendsListById(1).size());
-        assertEquals(1, userService.getFriendsListById(2).size());
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(user2))))
+                .andExpect(result -> assertTrue(userService.getFriendsListById(1).contains(user2)))
+                .andExpect(result -> assertTrue(userService.getFriendsListById(2).contains(user)));
     }
 
     @Test
@@ -323,9 +324,10 @@ public class UserControllerTests {
         mockMvc.perform(
                         get("/users/2/friends/common/3")
                 )
-                .andExpect(status().isOk());
-        assertTrue(userService.getById(2).getFriends().contains(1));
-        assertTrue(userService.getById(3).getFriends().contains(1));
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(user))))
+                .andExpect(result -> assertTrue(userService.getById(2).getFriends().contains(1)))
+                .andExpect(result -> assertTrue(userService.getById(3).getFriends().contains(1)));
     }
 
     @Test
@@ -337,7 +339,5 @@ public class UserControllerTests {
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ObjectNotFoundException))
                 .andExpect(result -> assertEquals("Пользователи не найдены",
                         Objects.requireNonNull(result.getResolvedException()).getMessage()));
-
     }
-
 }
