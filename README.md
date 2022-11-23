@@ -2,6 +2,6 @@
 Repository for Filmorate project.
 REST API
 
-![This is an image](https://disk.yandex.ru/d/91TGU1o_oYPl5Q)
+![This is an image](https://disk.yandex.ru/i/7pedGA8s-ob1IA)
 
 Its scheme of SQL DB
