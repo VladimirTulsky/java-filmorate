@@ -136,11 +136,7 @@ public class UserControllerTests {
         mockMvc.perform(
                         delete("/users/3")
                 )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("name"))
-                .andExpect(jsonPath("$.login").value("login"))
-                .andExpect(jsonPath("$.birthday").value("1995-05-05"))
-                .andExpect(jsonPath("$.email").value("test@test.com"));
+                .andExpect(status().isOk());
     }
 
     @Test
