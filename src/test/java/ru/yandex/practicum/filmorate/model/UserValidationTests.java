@@ -20,16 +20,14 @@ public class UserValidationTests {
 
     @Test
     void rightFieldsValidationTest() {
-        user = new User("test@test.ru", "login", LocalDate.of(1990, 5, 6));
-        user.setName("Vladimir");
+        user = new User(1, "test@test.ru", "login","Vladimir", LocalDate.of(1990, 5, 6));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertTrue(violations.isEmpty());
     }
 
     @Test
     void wrongEmailValidationTest() {
-        user = new User("testtest.ru", "login", LocalDate.of(1990, 5, 6));
-        user.setName("Vladimir");
+        user = new User(1, "testtest.ru", "login", "Vladimir", LocalDate.of(1990, 5, 6));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
         assertThat(violations.size()).isEqualTo(1);
@@ -37,16 +35,14 @@ public class UserValidationTests {
 
     @Test
     void emptyEmailValidationTest() {
-        user = new User(null, "login", LocalDate.of(1990, 05, 06));
-        user.setName("Vladimir");
+        user = new User(1, null, "login", "Vladimir", LocalDate.of(1990, 5, 6));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
     }
 
     @Test
     void nullLoginValidationTest() {
-        user = new User("test@test.ru", null, LocalDate.of(1990, 5, 6));
-        user.setName("Vladimir");
+        user = new User(1, "test@test.ru", null, "Vladimir", LocalDate.of(1990, 5, 6));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
         assertThat(violations.size()).isEqualTo(1);
@@ -54,8 +50,7 @@ public class UserValidationTests {
 
     @Test
     void emptyLoginValidationTest() {
-        user = new User("test@test.ru", "", LocalDate.of(1990, 5, 6));
-        user.setName("Vladimir");
+        user = new User(1, "test@test.ru", "", "Vladimir", LocalDate.of(1990, 5, 6));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
         assertThat(violations.size()).isEqualTo(2);
@@ -63,8 +58,7 @@ public class UserValidationTests {
 
     @Test
     void loginWithSpacesValidationTest() {
-        user = new User("test@test.ru", "log in", LocalDate.of(1990, 5, 6));
-        user.setName("Vladimir");
+        user = new User(1, "test@test.ru", "log in", "Vladimir", LocalDate.of(1990, 5, 6));
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
         assertThat(violations.size()).isEqualTo(1);
@@ -72,8 +66,7 @@ public class UserValidationTests {
 
     @Test
     void withoutBirthdayValidationTest() {
-        user = new User("test@test.ru", "login", null);
-        user.setName("Vladimir");
+        user = new User(1, "test@test.ru", "login", "Vladimir", null);
         Set<ConstraintViolation<User>> violations = validator.validate(user);
         assertFalse(violations.isEmpty());
         assertThat(violations.size()).isEqualTo(1);
