@@ -1,48 +1,40 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.impl.MpaDbStorage;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Optional;
 
 @Service
 @Slf4j
 public class MpaService {
 
-    JdbcTemplate jdbcTemplate;
+    private final MpaDbStorage mpaDbStorage;
 
-    public MpaService(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    @Autowired
+    public MpaService(MpaDbStorage mpaDbStorage) {
+        this.mpaDbStorage = mpaDbStorage;
     }
 
     public Collection<Mpa> findAll() {
-        String sql = "SELECT * FROM mpa";
+        log.info("Список рейтингов отправлен");
 
-        return jdbcTemplate.query(sql, this::makeMpa);
+        return mpaDbStorage.findAll();
     }
 
-    public Mpa getById(int id) {
-        String sql = "SELECT * FROM mpa WHERE id = ?";
-        SqlRowSet mpaRows = jdbcTemplate.queryForRowSet(sql, id);
-        if (!mpaRows.next()) {
+    public Optional<Mpa> getById(int id) {
+        Optional<Mpa> mpa = mpaDbStorage.getById(id);
+        if (mpa.isEmpty()) {
             log.warn("Рейтинг {} не найден.", id);
             throw new ObjectNotFoundException("Рейтинг не найден");
         }
+        log.info("Рейтинг отправлен");
 
-        return jdbcTemplate.queryForObject(sql, this::makeMpa, id);
+        return mpa;
     }
-
-    private Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("id");
-        String name = rs.getString("name");
-
-        return new Mpa(id, name);
-    }
-
 }
