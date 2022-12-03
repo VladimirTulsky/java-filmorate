@@ -5,9 +5,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.service.UtilityService;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -15,19 +16,17 @@ import java.util.Optional;
 public class GenreDbStorage implements GenreStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final UtilityService utilityService;
 
     @Autowired
-    public GenreDbStorage(JdbcTemplate jdbcTemplate, UtilityService utilityService) {
+    public GenreDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.utilityService = utilityService;
     }
 
     @Override
     public Collection<Genre> findAll() {
         String sql = "SELECT * FROM genre";
 
-        return jdbcTemplate.query(sql, utilityService::makeGenre);
+        return jdbcTemplate.query(sql, this::makeGenre);
     }
 
     @Override
@@ -38,6 +37,13 @@ public class GenreDbStorage implements GenreStorage {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, utilityService::makeGenre, id));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeGenre, id));
+    }
+
+    private Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
+        int id = rs.getInt("genre_id");
+        String name = rs.getString("name");
+
+        return new Genre(id, name);
     }
 }
