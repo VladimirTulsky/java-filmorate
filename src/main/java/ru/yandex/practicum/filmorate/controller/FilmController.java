@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/films")
@@ -36,22 +37,22 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Film getById(@PathVariable int id) {
+    public Optional<Film> getById(@PathVariable int id) {
         return filmService.getById(id);
     }
 
     @DeleteMapping("/{id}")
-    public Film deleteById(@PathVariable int id) {
+    public Optional<Film> deleteById(@PathVariable int id) {
         return filmService.deleteById(id);
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public Film addLike(@PathVariable int id, @PathVariable int userId) {
+    public Optional<Film> addLike(@PathVariable int id, @PathVariable int userId) {
         return filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public Film removeLike(@PathVariable int id, @PathVariable int userId) {
+    public Optional<Film> removeLike(@PathVariable int id, @PathVariable int userId) {
         return filmService.removeLike(id, userId);
     }
 
