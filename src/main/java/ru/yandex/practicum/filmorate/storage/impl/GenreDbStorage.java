@@ -40,7 +40,7 @@ public class GenreDbStorage implements GenreStorage {
         return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeGenre, id));
     }
 
-    private Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
+    Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("genre_id");
         String name = rs.getString("name");
 

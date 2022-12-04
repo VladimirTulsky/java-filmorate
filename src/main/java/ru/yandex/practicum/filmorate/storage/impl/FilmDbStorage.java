@@ -20,10 +20,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final GenreDbStorage genreDbStorage;
+    private final MpaDbStorage mpaDbStorage;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreDbStorage genreDbStorage, MpaDbStorage mpaDbStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.genreDbStorage = genreDbStorage;
+        this.mpaDbStorage = mpaDbStorage;
     }
 
     @Override
@@ -167,7 +171,7 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN FILM_GENRE FG on genre.genre_id = FG.GENRE_ID " +
                 "WHERE film_id = ?";
 
-        return jdbcTemplate.query(genresSql, this::makeGenre, filmId);
+        return jdbcTemplate.query(genresSql, genreDbStorage::makeGenre, filmId);
     }
 
     private Mpa findMpa(int filmId) {
@@ -176,20 +180,6 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN MPA_FILMS MF ON mpa.id = mf.mpa_id " +
                 "WHERE film_id = ?";
 
-        return jdbcTemplate.queryForObject(mpaSql, this::makeMpa, filmId);
-    }
-
-    private Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("genre_id");
-        String name = rs.getString("name");
-
-        return new Genre(id, name);
-    }
-
-    private Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("id");
-        String name = rs.getString("name");
-
-        return new Mpa(id, name);
+        return jdbcTemplate.queryForObject(mpaSql, mpaDbStorage::makeMpa, filmId);
     }
 }

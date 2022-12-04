@@ -40,7 +40,7 @@ public class MpaDbStorage implements MpaStorage {
         return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeMpa, id));
     }
 
-    private Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
+    Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("id");
         String name = rs.getString("name");
 
