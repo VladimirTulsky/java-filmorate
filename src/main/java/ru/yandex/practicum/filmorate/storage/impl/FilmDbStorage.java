@@ -198,7 +198,7 @@ public class FilmDbStorage implements FilmStorage {
         String sqlGenres = "SELECT film_id, g2.* " +
                 "FROM FILM_GENRE " +
                 "JOIN genre g2 ON g2.genre_id = film_genre.genre_id " +
-                "where film_id in (:ids)";
+                "WHERE film_id IN (:ids)";
         List<Integer> ids = films.stream()
                 .map(Film::getId).collect(Collectors.toList());
         Map<Integer, Film> filmMap = films.stream()
