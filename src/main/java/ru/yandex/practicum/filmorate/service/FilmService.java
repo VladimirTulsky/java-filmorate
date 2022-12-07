@@ -42,7 +42,7 @@ public class FilmService {
 
     public Film update(Film film) {
         validate(film);
-        if (getById(film.getId()).isEmpty()) {
+        if (filmDbStorage.getById(film.getId()).isEmpty()) {
             log.warn("Фильм с id {} не найден", film.getId());
             throw new ObjectNotFoundException("Фильм не найден");
         }
@@ -51,19 +51,17 @@ public class FilmService {
         return filmDbStorage.update(film);
     }
 
-    public Optional<Film> getById(int id) {
-        Optional<Film> film = filmDbStorage.getById(id);
-        if (film.isEmpty()) {
-            log.warn("Фильм с идентификатором {} не найден.", id);
-            throw new ObjectNotFoundException("Фильм не найден");
-        }
+    public Film getById(int id) {
         log.info("Фильм с id {} отправлен", id);
 
-        return filmDbStorage.getById(id);
+        return filmDbStorage.getById(id).orElseThrow(() -> {
+            log.warn("Фильм с идентификатором {} не найден.", id);
+            throw new ObjectNotFoundException("Фильм не найден");
+        });
     }
 
     public Optional<Film> deleteById(int id) {
-        if (getById(id).isEmpty()) {
+        if (filmDbStorage.getById(id).isEmpty()) {
             log.warn("Фильм не найден");
             throw new ObjectNotFoundException("Фильм не найден");
         }

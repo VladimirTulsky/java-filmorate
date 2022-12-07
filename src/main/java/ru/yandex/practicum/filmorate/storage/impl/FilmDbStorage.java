@@ -107,6 +107,7 @@ public class FilmDbStorage implements FilmStorage {
         if (!filmRows.next()) {
             return Optional.empty();
         }
+
         return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeFilm, id));
     }
 
@@ -152,7 +153,7 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY COUNT(fl.film_id) DESC " +
                 "LIMIT ?";
 
-        return jdbcTemplate.query(sql, this::makeFilm, count);
+        return loadMpaAndGenres(jdbcTemplate.query(sql, this::makeFilmForList, count));
     }
 
     private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
@@ -223,6 +224,8 @@ public class FilmDbStorage implements FilmStorage {
             filmMap.get(filmId).setMpa(new Mpa(mpaId, name));
         }
 
-        return new ArrayList<>(filmMap.values());
+        return ids.stream()
+                .map(filmMap::get)
+                .collect(Collectors.toList());
     }
 }
