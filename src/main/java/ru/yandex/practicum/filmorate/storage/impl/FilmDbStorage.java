@@ -3,6 +3,9 @@ package ru.yandex.practicum.filmorate.storage.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -20,21 +23,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final GenreDbStorage genreDbStorage;
-    private final MpaDbStorage mpaDbStorage;
+    private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreDbStorage genreDbStorage, MpaDbStorage mpaDbStorage) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.genreDbStorage = genreDbStorage;
-        this.mpaDbStorage = mpaDbStorage;
+        this.namedJdbcTemplate = namedJdbcTemplate;
     }
 
     @Override
     public Collection<Film> findAll() {
         String sql = "SELECT * FROM films";
 
-        return jdbcTemplate.query(sql, this::makeFilm);
+        return loadMpaAndGenres(jdbcTemplate.query(sql, this::makeFilmForList));
     }
 
     @Override
@@ -106,7 +107,6 @@ public class FilmDbStorage implements FilmStorage {
         if (!filmRows.next()) {
             return Optional.empty();
         }
-
         return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeFilm, id));
     }
 
@@ -165,13 +165,23 @@ public class FilmDbStorage implements FilmStorage {
         return new Film(id, name, description, releaseDate, duration, findMpa(id), findGenres(id));
     }
 
+    private Film makeFilmForList(ResultSet rs, int rowNum) throws SQLException {
+        int id = rs.getInt("id");
+        String name = rs.getString("name");
+        String description = rs.getString("description");
+        LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
+        long duration = rs.getLong("duration");
+
+        return new Film(id, name, description, releaseDate, duration, null, new ArrayList<>());
+    }
+
     private List<Genre> findGenres(int filmId) {
         String genresSql = "SELECT genre.genre_id, name " +
                 "FROM genre " +
                 "LEFT JOIN FILM_GENRE FG on genre.genre_id = FG.GENRE_ID " +
                 "WHERE film_id = ?";
 
-        return jdbcTemplate.query(genresSql, genreDbStorage::makeGenre, filmId);
+        return jdbcTemplate.query(genresSql, GenreDbStorage::makeGenre, filmId);
     }
 
     private Mpa findMpa(int filmId) {
@@ -180,6 +190,39 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN MPA_FILMS MF ON mpa.id = mf.mpa_id " +
                 "WHERE film_id = ?";
 
-        return jdbcTemplate.queryForObject(mpaSql, mpaDbStorage::makeMpa, filmId);
+        return jdbcTemplate.queryForObject(mpaSql, MpaDbStorage::makeMpa, filmId);
+    }
+
+    private List<Film> loadMpaAndGenres(List<Film> films) {
+        String sqlGenres = "SELECT film_id, g2.* " +
+                "FROM FILM_GENRE " +
+                "JOIN genre g2 ON g2.genre_id = film_genre.genre_id " +
+                "where film_id in (:ids)";
+        List<Integer> ids = films.stream()
+                .map(Film::getId).collect(Collectors.toList());
+        Map<Integer, Film> filmMap = films.stream()
+                .collect(Collectors.toMap(Film::getId, film -> film, (a, b) -> b));
+        SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
+        SqlRowSet sqlRowSet = namedJdbcTemplate.queryForRowSet(sqlGenres, parameters);
+        while (sqlRowSet.next()) {
+            int filmId = sqlRowSet.getInt("film_id");
+            int genreId = sqlRowSet.getInt("genre_id");
+            String name = sqlRowSet.getString("name");
+            filmMap.get(filmId).getGenres().add(new Genre(genreId, name));
+        }
+        String sqlMpa = "SELECT film_id, mpa_id, m.name " +
+                "FROM mpa_films " +
+                "JOIN films f ON f.id = mpa_films.film_id " +
+                "JOIN mpa m ON m.id = mpa_films.mpa_id " +
+                "WHERE film_id IN (:ids)";
+        sqlRowSet = namedJdbcTemplate.queryForRowSet(sqlMpa, parameters);
+        while (sqlRowSet.next()) {
+            int filmId = sqlRowSet.getInt("film_id");
+            int mpaId = sqlRowSet.getInt("mpa_id");
+            String name = sqlRowSet.getString("name");
+            filmMap.get(filmId).setMpa(new Mpa(mpaId, name));
+        }
+
+        return new ArrayList<>(filmMap.values());
     }
 }

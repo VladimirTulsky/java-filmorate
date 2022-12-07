@@ -26,7 +26,7 @@ public class MpaDbStorage implements MpaStorage {
     public Collection<Mpa> findAll() {
         String sql = "SELECT * FROM mpa";
 
-        return jdbcTemplate.query(sql, this::makeMpa);
+        return jdbcTemplate.query(sql, MpaDbStorage::makeMpa);
     }
 
     @Override
@@ -37,10 +37,10 @@ public class MpaDbStorage implements MpaStorage {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeMpa, id));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, MpaDbStorage::makeMpa, id));
     }
 
-    Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
+    static Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("id");
         String name = rs.getString("name");
 
