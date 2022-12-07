@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -60,34 +59,36 @@ public class FilmService {
         });
     }
 
-    public Optional<Film> deleteById(int id) {
-        if (filmDbStorage.getById(id).isEmpty()) {
-            log.warn("Фильм не найден");
-            throw new ObjectNotFoundException("Фильм не найден");
-        }
+    public Film deleteById(int id) {
         log.info("Фильм {} удален", id);
 
-        return filmDbStorage.deleteById(id);
+        return filmDbStorage.deleteById(id).orElseThrow(() -> {
+            log.warn("Фильм не найден");
+            throw new ObjectNotFoundException("Фильм не найден");
+        });
     }
 
-    public Optional<Film> addLike(int filmId, int userId) {
+    public Film addLike(int filmId, int userId) {
         if (filmDbStorage.getById(filmId).isEmpty() || userDbStorage.getById(userId).isEmpty()) {
-            log.warn("Фильм {} и(или) пользователь {} не найден.", filmId, userId);
-            throw new ObjectNotFoundException("Фильм или пользователь не найдены");
+            log.warn("Пользователь c id {} или фильм с id {} не найден.", userId, filmId);
+            throw new ObjectNotFoundException("Пользователь или фильм не найдены");
         }
         log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
 
-        return filmDbStorage.addLike(filmId, userId);
+        return filmDbStorage.addLike(filmId, userId).orElseThrow();
     }
 
-    public Optional<Film> removeLike(int filmId, int userId) {
-        if (filmDbStorage.getById(filmId).isEmpty() || userDbStorage.getById(userId).isEmpty()) {
-            log.warn("Фильм {} и(или) пользователь {} не найден.", filmId, userId);
-            throw new ObjectNotFoundException("Фильм или пользователь не найдены");
+    public Film removeLike(int filmId, int userId) {
+        if (userDbStorage.getById(userId).isEmpty()) {
+            log.warn("Пользователь {} не найден.", userId);
+            throw new ObjectNotFoundException("Пользователь не найден");
         }
         log.info("Пользователь {} удалил лайк к фильму {}", userId, filmId);
 
-        return filmDbStorage.removeLike(filmId, userId);
+        return filmDbStorage.removeLike(filmId, userId).orElseThrow(() -> {
+            log.warn("Фильм {} не найден.", filmId);
+            throw new ObjectNotFoundException("Фильм не найден");
+        });
     }
 
     public List<Film> getBestFilms(int count) {

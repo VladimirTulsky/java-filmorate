@@ -35,12 +35,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public Optional<User> getById(@PathVariable int id) {
+    public User getById(@PathVariable int id) {
         return userService.getById(id);
     }
 
     @DeleteMapping("/{id}")
-    public Optional<User> deleteById(@PathVariable int id) {
+    public User deleteById(@PathVariable int id) {
         return userService.deleteById(id);
     }
 

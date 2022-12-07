@@ -39,7 +39,7 @@ public class UserService {
 
     public User update(User user) {
         validate(user);
-        if (getById(user.getId()).isEmpty()) {
+        if (userDbStorage.getById(user.getId()).isEmpty()) {
             log.warn("Пользователь с id {} не найден", user.getId());
             throw new ObjectNotFoundException("Пользователь не найден");
         }
@@ -48,29 +48,26 @@ public class UserService {
         return userDbStorage.update(user);
     }
 
-    public Optional<User> getById(int id) {
-        Optional<User> user = userDbStorage.getById(id);
-        if (user.isEmpty()) {
-            log.warn("Пользователь с идентификатором {} не найден.", id);
-            throw new ObjectNotFoundException("Пользователь не найден");
-        }
+    public User getById(int id) {
         log.info("Пользователь с id {} отправлен", id);
 
-        return userDbStorage.getById(id);
+        return userDbStorage.getById(id).orElseThrow(() -> {
+            log.warn("Пользователь с идентификатором {} не найден.", id);
+            throw new ObjectNotFoundException("Пользователь не найден");
+        });
     }
 
-    public Optional<User> deleteById(int id) {
-        if (getById(id).isEmpty()) {
-            log.warn("Пользователь не найден");
-            throw new ObjectNotFoundException("Пользователь не найден");
-        }
+    public User deleteById(int id) {
         log.info("Пользователь {} удален", id);
 
-        return userDbStorage.deleteById(id);
+        return userDbStorage.deleteById(id).orElseThrow(() -> {
+            log.warn("Пользователь не найден");
+            throw new ObjectNotFoundException("Пользователь не найден");
+        });
     }
 
     public List<Integer> followUser(int followingId, int followerId) {
-        if (getById(followingId).isEmpty() || getById(followerId).isEmpty()) {
+        if (userDbStorage.getById(followingId).isEmpty() || userDbStorage.getById(followerId).isEmpty()) {
             log.warn("Пользователи с id {} и(или) {} не найден(ы)", followingId, followerId);
             throw new ObjectNotFoundException("Пользователи не найдены");
         }
@@ -98,7 +95,7 @@ public class UserService {
     }
 
     public List<User> getFriendsListById(int id) {
-        if (getById(id).isEmpty()) {
+        if (userDbStorage.getById(id).isEmpty()) {
             log.warn("Пользователь с id {} не найден", id);
             throw new ObjectNotFoundException("Пользователь не найден");
         }
@@ -108,7 +105,7 @@ public class UserService {
     }
 
     public List<User> getCommonFriendsList(int firstId, int secondId) {
-        if (getById(firstId).isEmpty() || getById(secondId).isEmpty()) {
+        if (userDbStorage.getById(firstId).isEmpty() || userDbStorage.getById(secondId).isEmpty()) {
             log.warn("Пользователи с id {} и {} не найдены", firstId, secondId);
             throw new ObjectNotFoundException("Пользователи не найдены");
         }

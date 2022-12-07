@@ -170,7 +170,7 @@ public class UserControllerTests {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ObjectNotFoundException))
-                .andExpect(result -> assertEquals("Пользователь не найден",
+                .andExpect(result -> assertEquals("Пользователи не найдены",
                         Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
@@ -257,7 +257,7 @@ public class UserControllerTests {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ObjectNotFoundException))
-                .andExpect(result -> assertEquals("Пользователь не найден",
+                .andExpect(result -> assertEquals("Пользователи не найдены",
                         Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 }
