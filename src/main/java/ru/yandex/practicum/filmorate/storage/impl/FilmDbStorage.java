@@ -63,8 +63,6 @@ public class FilmDbStorage implements FilmStorage {
             film.getGenres().stream()
                     .map(genre -> jdbcTemplate.update(genresSql, film.getId(), genre.getId()))
                     .collect(Collectors.toList());
-        }
-        if (film.getGenres() != null) {
             film.getGenres().clear();
             loadGenres(Collections.singletonList(film));
         } else film.setGenres(Collections.emptyList());
