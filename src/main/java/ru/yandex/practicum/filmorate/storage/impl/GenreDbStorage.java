@@ -26,7 +26,7 @@ public class GenreDbStorage implements GenreStorage {
     public Collection<Genre> findAll() {
         String sql = "SELECT * FROM genre";
 
-        return jdbcTemplate.query(sql, this::makeGenre);
+        return jdbcTemplate.query(sql, GenreDbStorage::makeGenre);
     }
 
     @Override
@@ -37,10 +37,10 @@ public class GenreDbStorage implements GenreStorage {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeGenre, id));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, GenreDbStorage::makeGenre, id));
     }
 
-    Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
+    static Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("genre_id");
         String name = rs.getString("name");
 

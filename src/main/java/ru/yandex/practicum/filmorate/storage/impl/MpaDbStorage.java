@@ -26,22 +26,22 @@ public class MpaDbStorage implements MpaStorage {
     public Collection<Mpa> findAll() {
         String sql = "SELECT * FROM mpa";
 
-        return jdbcTemplate.query(sql, this::makeMpa);
+        return jdbcTemplate.query(sql, MpaDbStorage::makeMpa);
     }
 
     @Override
     public Optional<Mpa> getById(int id) {
-        String sql = "SELECT * FROM mpa WHERE id = ?";
+        String sql = "SELECT * FROM mpa WHERE MPA_ID = ?";
         SqlRowSet mpaRows = jdbcTemplate.queryForRowSet(sql, id);
         if (!mpaRows.next()) {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeMpa, id));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, MpaDbStorage::makeMpa, id));
     }
 
-    Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("id");
+    static Mpa makeMpa(ResultSet rs, int rowNum) throws SQLException {
+        int id = rs.getInt("mpa_id");
         String name = rs.getString("name");
 
         return new Mpa(id, name);

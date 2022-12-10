@@ -1,6 +1,6 @@
 # java-filmorate
 
 Template repository for Filmorate project.
-![DB Scheme Filmorate](https://user-images.githubusercontent.com/75275490/205144209-09f09818-87c8-4a80-bdfe-d9e0ea072bff.png)
- 
+![SQL scheme](https://user-images.githubusercontent.com/75275490/206796660-00a293f4-aec1-49c8-a0a6-dc8c2c60fa9a.png)
+
 My SQL scheme for filmorate project

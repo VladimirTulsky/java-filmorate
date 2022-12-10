@@ -180,7 +180,7 @@ public class FilmControllerTests {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ObjectNotFoundException))
-                .andExpect(result -> assertEquals("Фильм или пользователь не найдены",
+                .andExpect(result -> assertEquals("Пользователь или фильм не найдены",
                         Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
@@ -192,7 +192,7 @@ public class FilmControllerTests {
                 )
                 .andExpect(status().isNotFound())
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof ObjectNotFoundException))
-                .andExpect(result -> assertEquals("Фильм или пользователь не найдены",
+                .andExpect(result -> assertEquals("Пользователь не найден",
                         Objects.requireNonNull(result.getResolvedException()).getMessage()));
 
     }

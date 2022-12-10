@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -21,7 +20,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Repository
-@Slf4j
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -44,7 +42,7 @@ public class UserDbStorage implements UserStorage {
                 "VALUES ( ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"id"});
+            PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"user_id"});
             stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getLogin());
             stmt.setString(3, user.getName());
@@ -59,7 +57,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User update(User user) {
         String sql = "UPDATE users SET EMAIL = ?, LOGIN = ?, NAME = ?, BIRTHDAY = ? " +
-                "WHERE id = ?";
+                "WHERE USER_ID = ?";
         jdbcTemplate.update(sql,
                 user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
 
@@ -68,7 +66,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> getById(int id) {
-        String sql = "select * from USERS where ID = ?";
+        String sql = "select * from USERS where USER_ID = ?";
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sql, id);
         if (!filmRows.next()) {
             return Optional.empty();
@@ -79,10 +77,9 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> deleteById(int id) {
-        String sql = "delete from USERS where ID = ?";
+        String sql = "delete from USERS where USER_ID = ?";
         Optional<User> user = getById(id);
         jdbcTemplate.update(sql, id);
-        log.info("Пользователь с id {} удален", id);
 
         return user;
     }
@@ -106,30 +103,30 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getFriendsListById(int id) {
-        String sql = "SELECT id, email, login, name, birthday " +
+        String sql = "SELECT USERS.USER_ID, email, login, name, birthday " +
                 "FROM USERS " +
-                "LEFT JOIN friendship f on users.id = f.friend_id " +
-                "where user_id = ?";
+                "LEFT JOIN friendship f on users.USER_ID = f.friend_id " +
+                "where f.user_id = ?";
 
         return jdbcTemplate.query(sql, this::makeUser, id);
     }
 
     @Override
     public List<User> getCommonFriendsList(int firstId, int secondId) {
-        String sql = "SELECT id, email, login, name, birthday " +
+        String sql = "SELECT u.USER_ID, email, login, name, birthday " +
                 "FROM friendship AS f " +
-                "LEFT JOIN users u ON u.id = f.friend_id " +
+                "LEFT JOIN users u ON u.USER_ID = f.friend_id " +
                 "WHERE f.user_id = ? AND f.friend_id IN ( " +
                 "SELECT friend_id " +
                 "FROM friendship AS f " +
-                "LEFT JOIN users AS u ON u.id = f.friend_id " +
+                "LEFT JOIN users AS u ON u.USER_ID = f.friend_id " +
                 "WHERE f.user_id = ? )";
 
         return jdbcTemplate.query(sql, this::makeUser, firstId, secondId);
     }
 
     public User makeUser(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("id");
+        int id = rs.getInt("user_id");
         String email = rs.getString("email");
         String login = rs.getString("login");
         String name = rs.getString("name");
