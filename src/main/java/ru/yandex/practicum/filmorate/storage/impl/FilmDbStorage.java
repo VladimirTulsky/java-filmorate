@@ -37,7 +37,7 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM films " +
                 "JOIN mpa m ON m.MPA_ID = films.mpa_id";
         List<Film> films = jdbcTemplate.query(sql, this::makeFilm);
-        findGenresByList(films);
+        loadGenres(films);
 
         return films;
     }
@@ -61,10 +61,13 @@ public class FilmDbStorage implements FilmStorage {
         String genresSql = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
         if (film.getGenres() != null) {
             film.getGenres().stream()
-                    .map(g -> jdbcTemplate.update(genresSql, film.getId(), g.getId()))
+                    .map(genre -> jdbcTemplate.update(genresSql, film.getId(), genre.getId()))
                     .collect(Collectors.toList());
-            film.setGenres(findGenresById(film.getId()));
         }
+        if (film.getGenres() != null) {
+            film.getGenres().clear();
+            loadGenres(Collections.singletonList(film));
+        } else film.setGenres(Collections.emptyList());
 
         return film;
     }
@@ -85,9 +88,10 @@ public class FilmDbStorage implements FilmStorage {
                 if (!checkRows.next()) {
                     jdbcTemplate.update(updateGenres, film.getId(), g.getId());
                 }
-                film.setGenres(findGenresById(film.getId()));
             }
-        }
+            film.getGenres().clear();
+            loadGenres(Collections.singletonList(film));
+        } else film.setGenres(Collections.emptyList());
         jdbcTemplate.update(sql,
                 film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
@@ -106,9 +110,9 @@ public class FilmDbStorage implements FilmStorage {
             return Optional.empty();
         }
         Film film = jdbcTemplate.queryForObject(sql, this::makeFilm, id);
-        Objects.requireNonNull(film).setGenres(findGenresById(film.getId()));
+        loadGenres(Collections.singletonList(film));
 
-        return Optional.of(film);
+        return Optional.ofNullable(film);
     }
 
     @Override
@@ -152,7 +156,7 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY COUNT(fl.film_id) DESC " +
                 "LIMIT ?";
         List<Film> films = jdbcTemplate.query(sql, this::makeFilm, count);
-        findGenresByList(films);
+        loadGenres(films);
 
         return films;
     }
@@ -168,22 +172,14 @@ public class FilmDbStorage implements FilmStorage {
         return new Film(id, name, description, releaseDate, duration, mpa, new ArrayList<>());
     }
 
-    private List<Genre> findGenresById(int filmId) {
-        String genresSql = "SELECT genre.genre_id, name " +
-                "FROM genre " +
-                "LEFT JOIN FILM_GENRE FG on genre.genre_id = FG.GENRE_ID " +
-                "WHERE film_id = ?";
-
-        return jdbcTemplate.query(genresSql, GenreDbStorage::makeGenre, filmId);
-    }
-
-    private void findGenresByList(List<Film> films) {
+    private void loadGenres(List<Film> films) {
         String sqlGenres = "SELECT film_id, g2.* " +
                 "FROM FILM_GENRE " +
                 "JOIN genre g2 ON g2.genre_id = film_genre.genre_id " +
                 "WHERE film_id IN (:ids)";
         List<Integer> ids = films.stream()
-                .map(Film::getId).collect(Collectors.toList());
+                .map(Film::getId)
+                .collect(Collectors.toList());
         Map<Integer, Film> filmMap = films.stream()
                 .collect(Collectors.toMap(Film::getId, film -> film, (a, b) -> b));
         SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
