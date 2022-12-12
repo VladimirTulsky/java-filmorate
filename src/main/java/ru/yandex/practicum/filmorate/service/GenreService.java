@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.impl.GenreDbStorage;
 
 import java.util.Collection;
@@ -14,10 +15,10 @@ import java.util.Optional;
 @Slf4j
 public class GenreService {
 
-    private final GenreDbStorage genreDbStorage;
+    private final GenreStorage genreDbStorage;
 
     @Autowired
-    public GenreService(GenreDbStorage genreDbStorage) {
+    public GenreService(GenreStorage genreDbStorage) {
         this.genreDbStorage = genreDbStorage;
     }
 

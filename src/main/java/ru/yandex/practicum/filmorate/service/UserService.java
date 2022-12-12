@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.InternalException;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
 import java.util.*;
@@ -15,11 +16,11 @@ import java.util.*;
 @Service
 @Slf4j
 public class UserService {
-    private final UserDbStorage userDbStorage;
+    private final UserStorage userDbStorage;
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public UserService(UserDbStorage userDbStorage, JdbcTemplate jdbcTemplate) {
+    public UserService(UserStorage userDbStorage, JdbcTemplate jdbcTemplate) {
         this.userDbStorage = userDbStorage;
         this.jdbcTemplate = jdbcTemplate;
     }

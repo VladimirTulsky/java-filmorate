@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
@@ -17,11 +19,11 @@ import java.util.List;
 @Slf4j
 public class FilmService {
     private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
-    private final FilmDbStorage filmDbStorage;
-    private final UserDbStorage userDbStorage;
+    private final FilmStorage filmDbStorage;
+    private final UserStorage userDbStorage;
 
     @Autowired
-    public FilmService(FilmDbStorage filmDbStorage, UserDbStorage userDbStorage) {
+    public FilmService(FilmStorage filmDbStorage, UserStorage userDbStorage) {
         this.filmDbStorage = filmDbStorage;
         this.userDbStorage = userDbStorage;
     }
