@@ -5,19 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.impl.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Service
 @Slf4j
 public class GenreService {
 
-    private final GenreDbStorage genreDbStorage;
+    private final GenreStorage genreDbStorage;
 
     @Autowired
-    public GenreService(GenreDbStorage genreDbStorage) {
+    public GenreService(GenreStorage genreDbStorage) {
         this.genreDbStorage = genreDbStorage;
     }
 
@@ -27,14 +26,12 @@ public class GenreService {
         return genreDbStorage.findAll();
     }
 
-    public Optional<Genre> getById(int id) {
-        Optional<Genre> genre = genreDbStorage.getById(id);
-        if (genre.isEmpty()) {
-            log.warn("Жанр {} не найден.", id);
-            throw new ObjectNotFoundException("Жанр не найден");
-        }
+    public Genre getById(int id) {
         log.info("Жанр отправлен");
 
-        return genre;
+        return genreDbStorage.getById(id).orElseThrow(() -> {
+            log.warn("Жанр {} не найден.", id);
+            throw new ObjectNotFoundException("Жанр не найден");
+        });
     }
 }

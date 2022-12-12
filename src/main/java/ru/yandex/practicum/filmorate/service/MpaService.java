@@ -5,19 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.impl.MpaDbStorage;
+import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Service
 @Slf4j
 public class MpaService {
 
-    private final MpaDbStorage mpaDbStorage;
+    private final MpaStorage mpaDbStorage;
 
     @Autowired
-    public MpaService(MpaDbStorage mpaDbStorage) {
+    public MpaService(MpaStorage mpaDbStorage) {
         this.mpaDbStorage = mpaDbStorage;
     }
 
@@ -27,14 +26,12 @@ public class MpaService {
         return mpaDbStorage.findAll();
     }
 
-    public Optional<Mpa> getById(int id) {
-        Optional<Mpa> mpa = mpaDbStorage.getById(id);
-        if (mpa.isEmpty()) {
-            log.warn("Рейтинг {} не найден.", id);
-            throw new ObjectNotFoundException("Рейтинг не найден");
-        }
+    public Mpa getById(int id) {
         log.info("Рейтинг отправлен");
 
-        return mpa;
+        return mpaDbStorage.getById(id).orElseThrow(() -> {
+            log.warn("Рейтинг {} не найден.", id);
+            throw new ObjectNotFoundException("Рейтинг не найден");
+        });
     }
 }

@@ -125,7 +125,7 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, this::makeUser, firstId, secondId);
     }
 
-    public User makeUser(ResultSet rs, int rowNum) throws SQLException {
+    private User makeUser(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("user_id");
         String email = rs.getString("email");
         String login = rs.getString("login");
