@@ -6,10 +6,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.impl.MpaDbStorage;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -28,14 +26,12 @@ public class MpaService {
         return mpaDbStorage.findAll();
     }
 
-    public Optional<Mpa> getById(int id) {
-        Optional<Mpa> mpa = mpaDbStorage.getById(id);
-        if (mpa.isEmpty()) {
-            log.warn("Рейтинг {} не найден.", id);
-            throw new ObjectNotFoundException("Рейтинг не найден");
-        }
+    public Mpa getById(int id) {
         log.info("Рейтинг отправлен");
 
-        return mpa;
+        return mpaDbStorage.getById(id).orElseThrow(() -> {
+            log.warn("Рейтинг {} не найден.", id);
+            throw new ObjectNotFoundException("Рейтинг не найден");
+        });
     }
 }
