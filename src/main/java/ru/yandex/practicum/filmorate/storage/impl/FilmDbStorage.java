@@ -176,12 +176,11 @@ public class FilmDbStorage implements FilmStorage {
     private void addGenres(Film film) {
         if (film.getGenres() != null) {
             String updateGenres = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
+            List<Integer> ids = new ArrayList<>();
             for (Genre g : film.getGenres()) {
-                String checkDuplicate = "SELECT * FROM film_genre WHERE film_id = ? AND genre_id = ?";
-                SqlRowSet checkRows = jdbcTemplate.queryForRowSet(checkDuplicate, film.getId(), g.getId());
-                if (!checkRows.next()) {
-                    jdbcTemplate.update(updateGenres, film.getId(), g.getId());
-                }
+                if (ids.contains(g.getId())) break;
+                ids.add(g.getId());
+                jdbcTemplate.update(updateGenres, film.getId(), g.getId());
             }
             film.getGenres().clear();
             loadGenres(Collections.singletonList(film));
