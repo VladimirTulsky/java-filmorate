@@ -43,6 +43,8 @@ public class UserControllerTests {
 
     @Test
     void findAllTest() throws Exception {
+        user.setEmail("test1@test.ru");
+        user.setLogin("login1");
         userDbStorage.create(user);
 
         mockMvc.perform(
@@ -130,7 +132,11 @@ public class UserControllerTests {
 
     @Test
     void deleteUserByIdTest() throws Exception {
+        user.setEmail("test2@test.ru");
+        user.setLogin("login2");
         userDbStorage.create(user);
+        user.setEmail("test3@test.ru");
+        user.setLogin("login3");
         userDbStorage.create(user);
 
         mockMvc.perform(

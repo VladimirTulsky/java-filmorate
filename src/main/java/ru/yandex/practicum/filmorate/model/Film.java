@@ -4,7 +4,7 @@ import lombok.*;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -24,5 +24,5 @@ public class Film {
     @Min(value = 1, message = "Некорректная продолжительность фильма")
     private long duration;
     private Mpa mpa;
-    private List<Genre> genres;
+    private Set<Genre> genres;
 }

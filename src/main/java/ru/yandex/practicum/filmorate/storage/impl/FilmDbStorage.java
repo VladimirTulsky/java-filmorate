@@ -58,14 +58,7 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
         film.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
         film.setMpa(mpaDbStorage.getById(film.getMpa().getId()).orElseThrow());
-        String genresSql = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
-        if (film.getGenres() != null) {
-            film.getGenres().stream()
-                    .map(genre -> jdbcTemplate.update(genresSql, film.getId(), genre.getId()))
-                    .collect(Collectors.toList());
-            film.getGenres().clear();
-            loadGenres(Collections.singletonList(film));
-        } else film.setGenres(Collections.emptyList());
+        addGenres(film);
 
         return film;
     }
@@ -76,20 +69,8 @@ public class FilmDbStorage implements FilmStorage {
                 "duration = ?, mpa_id = ?" +
                 "WHERE FILM_ID = ?";
         film.setMpa(mpaDbStorage.getById(film.getMpa().getId()).orElseThrow());
-        if (film.getGenres() != null) {
-            String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
-            String updateGenres = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
-            jdbcTemplate.update(deleteGenres, film.getId());
-            for (Genre g : film.getGenres()) {
-                String checkDuplicate = "SELECT * FROM film_genre WHERE film_id = ? AND genre_id = ?";
-                SqlRowSet checkRows = jdbcTemplate.queryForRowSet(checkDuplicate, film.getId(), g.getId());
-                if (!checkRows.next()) {
-                    jdbcTemplate.update(updateGenres, film.getId(), g.getId());
-                }
-            }
-            film.getGenres().clear();
-            loadGenres(Collections.singletonList(film));
-        } else film.setGenres(Collections.emptyList());
+        deleteGenres(film);
+        addGenres(film);
         jdbcTemplate.update(sql,
                 film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
@@ -167,7 +148,7 @@ public class FilmDbStorage implements FilmStorage {
         long duration = rs.getLong("duration");
         Mpa mpa = new Mpa(rs.getInt("mpa.mpa_id"), rs.getString("mpa.name"));
 
-        return new Film(id, name, description, releaseDate, duration, mpa, new ArrayList<>());
+        return new Film(id, name, description, releaseDate, duration, mpa, new HashSet<>());
     }
 
     private void loadGenres(List<Film> films) {
@@ -188,7 +169,22 @@ public class FilmDbStorage implements FilmStorage {
             String name = sqlRowSet.getString("name");
             filmMap.get(filmId).getGenres().add(new Genre(genreId, name));
         }
-        films.stream()
-                .map(film -> film.getGenres().addAll(filmMap.get(film.getId()).getGenres()));
+        films.forEach(film -> film.getGenres().addAll(filmMap.get(film.getId()).getGenres()));
     }
+
+    private void addGenres(Film film) {
+        String genresSql = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
+        if (film.getGenres() != null) {
+            film.getGenres()
+                    .forEach(genre -> jdbcTemplate.update(genresSql, film.getId(), genre.getId()));
+            film.getGenres().clear();
+            loadGenres(Collections.singletonList(film));
+        } else film.setGenres(Collections.emptySet());
+    }
+
+    private void deleteGenres(Film film) {
+            String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
+            jdbcTemplate.update(deleteGenres, film.getId());
+    }
+
 }
