@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -176,12 +177,19 @@ public class FilmDbStorage implements FilmStorage {
     private void addGenres(Film film) {
         if (film.getGenres() != null) {
             String updateGenres = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
-            List<Integer> ids = new ArrayList<>();
-            for (Genre g : film.getGenres()) {
-                if (ids.contains(g.getId())) break;
-                ids.add(g.getId());
-                jdbcTemplate.update(updateGenres, film.getId(), g.getId());
-            }
+            List<Integer> genreIds = film.getGenres().stream()
+                    .map(Genre::getId).distinct()
+                    .collect(Collectors.toList());
+            jdbcTemplate.batchUpdate(updateGenres,
+                    new BatchPreparedStatementSetter() {
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setInt(1, film.getId());
+                            ps.setInt(2, genreIds.get(i));
+                        }
+                        public int getBatchSize() {
+                            return genreIds.size();
+                        }
+                    });
             film.getGenres().clear();
             loadGenres(Collections.singletonList(film));
         } else film.setGenres(Collections.emptyList());
