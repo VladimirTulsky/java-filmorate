@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -35,7 +34,7 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "SELECT films.*, m.* " +
                 "FROM films " +
                 "JOIN mpa m ON m.MPA_ID = films.mpa_id";
-        List<Film> films = jdbcTemplate.query(sql, this::makeFilm);
+        List<Film> films = jdbcTemplate.query(sql, FilmDbStorage::makeFilm);
         loadGenres(films);
 
         return films;
@@ -89,7 +88,7 @@ public class FilmDbStorage implements FilmStorage {
         if (!filmRows.next()) {
             return Optional.empty();
         }
-        Film film = jdbcTemplate.queryForObject(sql, this::makeFilm, id);
+        Film film = jdbcTemplate.queryForObject(sql, FilmDbStorage::makeFilm, id);
         loadGenres(Collections.singletonList(film));
 
         return Optional.ofNullable(film);
@@ -135,13 +134,13 @@ public class FilmDbStorage implements FilmStorage {
                 ") " +
                 "ORDER BY COUNT(fl.film_id) DESC " +
                 "LIMIT ?";
-        List<Film> films = jdbcTemplate.query(sql, this::makeFilm, count);
+        List<Film> films = jdbcTemplate.query(sql, FilmDbStorage::makeFilm, count);
         loadGenres(films);
 
         return films;
     }
 
-    private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
+    static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("film_id");
         String name = rs.getString("name");
         String description = rs.getString("description");
@@ -149,7 +148,7 @@ public class FilmDbStorage implements FilmStorage {
         long duration = rs.getLong("duration");
         Mpa mpa = new Mpa(rs.getInt("mpa.mpa_id"), rs.getString("mpa.name"));
 
-        return new Film(id, name, description, releaseDate, duration, mpa, new ArrayList<>());
+        return new Film(id, name, description, releaseDate, duration, mpa, new LinkedHashSet<>());
     }
 
     private void loadGenres(List<Film> films) {
@@ -170,34 +169,23 @@ public class FilmDbStorage implements FilmStorage {
             String name = sqlRowSet.getString("name");
             filmMap.get(filmId).getGenres().add(new Genre(genreId, name));
         }
-        films.stream()
-                .map(film -> film.getGenres().addAll(filmMap.get(film.getId()).getGenres()));
+        films.forEach(film -> film.getGenres().addAll(filmMap.get(film.getId()).getGenres()));
     }
 
     private void addGenres(Film film) {
         if (film.getGenres() != null) {
             String updateGenres = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
-            List<Integer> genreIds = film.getGenres().stream()
-                    .map(Genre::getId).distinct()
-                    .collect(Collectors.toList());
-            jdbcTemplate.batchUpdate(updateGenres,
-                    new BatchPreparedStatementSetter() {
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setInt(1, film.getId());
-                            ps.setInt(2, genreIds.get(i));
-                        }
-                        public int getBatchSize() {
-                            return genreIds.size();
-                        }
+            jdbcTemplate.batchUpdate(
+                    updateGenres, film.getGenres(), film.getGenres().size(),
+                    (ps, genre) -> {
+                        ps.setInt(1, film.getId());
+                        ps.setInt(2, genre.getId());
                     });
-            film.getGenres().clear();
-            loadGenres(Collections.singletonList(film));
-        } else film.setGenres(Collections.emptyList());
+        } else film.setGenres(new LinkedHashSet<>());
     }
 
     private void deleteGenres(Film film) {
             String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
             jdbcTemplate.update(deleteGenres, film.getId());
     }
-
 }

@@ -33,7 +33,7 @@ public class UserDbStorage implements UserStorage {
     public Collection<User> findAll() {
         String sql = "select * from USERS";
 
-        return jdbcTemplate.query(sql, this::makeUser);
+        return jdbcTemplate.query(sql, UserDbStorage::makeUser);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class UserDbStorage implements UserStorage {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeUser, id));
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, UserDbStorage::makeUser, id));
     }
 
     @Override
@@ -108,7 +108,7 @@ public class UserDbStorage implements UserStorage {
                 "LEFT JOIN friendship f on users.USER_ID = f.friend_id " +
                 "where f.user_id = ?";
 
-        return jdbcTemplate.query(sql, this::makeUser, id);
+        return jdbcTemplate.query(sql, UserDbStorage::makeUser, id);
     }
 
     @Override
@@ -122,10 +122,10 @@ public class UserDbStorage implements UserStorage {
                 "LEFT JOIN users AS u ON u.USER_ID = f.friend_id " +
                 "WHERE f.user_id = ? )";
 
-        return jdbcTemplate.query(sql, this::makeUser, firstId, secondId);
+        return jdbcTemplate.query(sql, UserDbStorage::makeUser, firstId, secondId);
     }
 
-    private User makeUser(ResultSet rs, int rowNum) throws SQLException {
+    static User makeUser(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("user_id");
         String email = rs.getString("email");
         String login = rs.getString("login");
