@@ -41,10 +41,7 @@ public class FilmService {
 
     public Film update(Film film) {
         validate(film);
-        if (filmDbStorage.getById(film.getId()).isEmpty()) {
-            log.warn("Фильм с id {} не найден", film.getId());
-            throw new ObjectNotFoundException("Фильм не найден");
-        }
+        getById(film.getId());
         log.info("Фильм {} обновлен", film.getId());
 
         return filmDbStorage.update(film);
