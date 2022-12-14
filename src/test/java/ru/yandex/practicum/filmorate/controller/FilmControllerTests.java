@@ -158,6 +158,8 @@ public class FilmControllerTests {
 
     @Test
     void addLikeAndRemoveTest() throws Exception {
+        user.setEmail("test4@test.ru");
+        user.setLogin("login4");
         userDbStorage.create(user);
         filmDbStorage.create(film);
 

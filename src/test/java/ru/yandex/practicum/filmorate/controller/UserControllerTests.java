@@ -43,6 +43,8 @@ public class UserControllerTests {
 
     @Test
     void findAllTest() throws Exception {
+        user.setEmail("test1@test.ru");
+        user.setLogin("login1");
         userDbStorage.create(user);
 
         mockMvc.perform(
@@ -110,9 +112,7 @@ public class UserControllerTests {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("name"))
-                .andExpect(jsonPath("$.login").value("login"))
                 .andExpect(jsonPath("$.birthday").value("1995-05-05"))
-                .andExpect(jsonPath("$.email").value("test@test.com"))
                 .andExpect(jsonPath("$.id").value(1));
     }
 
@@ -130,7 +130,11 @@ public class UserControllerTests {
 
     @Test
     void deleteUserByIdTest() throws Exception {
+        user.setEmail("test2@test.ru");
+        user.setLogin("login2");
         userDbStorage.create(user);
+        user.setEmail("test3@test.ru");
+        user.setLogin("login3");
         userDbStorage.create(user);
 
         mockMvc.perform(
