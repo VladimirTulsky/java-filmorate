@@ -196,10 +196,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void deleteGenres(Film film) {
-        if (film.getGenres() != null) {
             String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
             jdbcTemplate.update(deleteGenres, film.getId());
-        }
     }
 
 }
