@@ -55,8 +55,6 @@ public class FilmDbStorage implements FilmStorage {
             return stmt;
         }, keyHolder);
         film.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-        film.setMpa(jdbcTemplate.queryForObject("SELECT * FROM mpa WHERE MPA_ID = ?",
-                MpaDbStorage::makeMpa, film.getMpa().getId()));
         addGenres(film);
 
         return film;
@@ -67,8 +65,6 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, " +
                 "duration = ?, mpa_id = ?" +
                 "WHERE FILM_ID = ?";
-        film.setMpa(jdbcTemplate.queryForObject("SELECT * FROM mpa WHERE MPA_ID = ?",
-                MpaDbStorage::makeMpa, film.getMpa().getId()));
         deleteGenres(film);
         addGenres(film);
         jdbcTemplate.update(sql,

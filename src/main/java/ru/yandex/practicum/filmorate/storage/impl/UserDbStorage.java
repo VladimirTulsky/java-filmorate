@@ -85,20 +85,20 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<Integer> followUser(int followingId, int followerId) {
+    public List<Integer> followUser(int followerId, int followingId) {
         String sqlForWrite = "MERGE INTO FRIENDSHIP (USER_ID, FRIEND_ID) " +
                 "VALUES (?, ?)";
-        jdbcTemplate.update(sqlForWrite, followingId, followerId);
+        jdbcTemplate.update(sqlForWrite, followerId, followingId);
 
-        return List.of(followingId, followerId);
+        return List.of(followerId, followingId);
     }
 
     @Override
-    public List<Integer> unfollowUser(int followingId, int followerId) {
+    public List<Integer> unfollowUser(int followerId, int followingId) {
         String sql = "DELETE FROM FRIENDSHIP WHERE USER_ID = ? AND FRIEND_ID = ?";
-        jdbcTemplate.update(sql, followingId, followerId);
+        jdbcTemplate.update(sql, followerId, followingId);
 
-        return List.of(followingId, followerId);
+        return List.of(followerId, followingId);
     }
 
     @Override
