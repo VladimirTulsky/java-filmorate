@@ -34,7 +34,6 @@ public class UserService {
 
     public User update(User user) {
         validate(user);
-        getById(user.getId());
         log.info("Пользователь {} обновлен", user.getId());
 
         return userDbStorage.update(user);

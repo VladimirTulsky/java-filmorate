@@ -41,7 +41,6 @@ public class FilmService {
 
     public Film update(Film film) {
         validate(film);
-        getById(film.getId());
         log.info("Фильм {} обновлен", film.getId());
 
         return filmDbStorage.update(film);
