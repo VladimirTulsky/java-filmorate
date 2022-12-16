@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
@@ -32,12 +32,11 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Optional<Genre> getById(int id) {
         String sql = "SELECT * FROM genre WHERE genre_id = ?";
-        SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sql, id);
-        if (!genreRows.next()) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, GenreDbStorage::makeGenre, id));
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
-
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, GenreDbStorage::makeGenre, id));
     }
 
     static Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {

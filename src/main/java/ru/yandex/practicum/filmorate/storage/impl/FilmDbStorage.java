@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -55,8 +56,6 @@ public class FilmDbStorage implements FilmStorage {
             return stmt;
         }, keyHolder);
         film.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-        film.setMpa(jdbcTemplate.queryForObject("SELECT * FROM mpa WHERE MPA_ID = ?",
-                MpaDbStorage::makeMpa, film.getMpa().getId()));
         addGenres(film);
 
         return film;
@@ -67,8 +66,6 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, " +
                 "duration = ?, mpa_id = ?" +
                 "WHERE FILM_ID = ?";
-        film.setMpa(jdbcTemplate.queryForObject("SELECT * FROM mpa WHERE MPA_ID = ?",
-                MpaDbStorage::makeMpa, film.getMpa().getId()));
         deleteGenres(film);
         addGenres(film);
         jdbcTemplate.update(sql,
@@ -84,14 +81,13 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM films " +
                 "JOIN mpa m ON m.MPA_ID = films.mpa_id " +
                 "WHERE films.film_id = ?";
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sql, id);
-        if (!filmRows.next()) {
+        try {
+            Film film = jdbcTemplate.queryForObject(sql, FilmDbStorage::makeFilm, id);
+            loadGenres(Collections.singletonList(film));
+            return Optional.ofNullable(film);
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
-        Film film = jdbcTemplate.queryForObject(sql, FilmDbStorage::makeFilm, id);
-        loadGenres(Collections.singletonList(film));
-
-        return Optional.ofNullable(film);
     }
 
     @Override

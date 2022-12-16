@@ -1,10 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -67,12 +67,11 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> getById(int id) {
         String sql = "select * from USERS where USER_ID = ?";
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sql, id);
-        if (!filmRows.next()) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, UserDbStorage::makeUser, id));
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
-
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, UserDbStorage::makeUser, id));
     }
 
     @Override
@@ -85,20 +84,20 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<Integer> followUser(int followingId, int followerId) {
+    public List<Integer> followUser(int followerId, int followingId) {
         String sqlForWrite = "MERGE INTO FRIENDSHIP (USER_ID, FRIEND_ID) " +
                 "VALUES (?, ?)";
-        jdbcTemplate.update(sqlForWrite, followingId, followerId);
+        jdbcTemplate.update(sqlForWrite, followerId, followingId);
 
-        return List.of(followingId, followerId);
+        return List.of(followerId, followingId);
     }
 
     @Override
-    public List<Integer> unfollowUser(int followingId, int followerId) {
+    public List<Integer> unfollowUser(int followerId, int followingId) {
         String sql = "DELETE FROM FRIENDSHIP WHERE USER_ID = ? AND FRIEND_ID = ?";
-        jdbcTemplate.update(sql, followingId, followerId);
+        jdbcTemplate.update(sql, followerId, followingId);
 
-        return List.of(followingId, followerId);
+        return List.of(followerId, followingId);
     }
 
     @Override
