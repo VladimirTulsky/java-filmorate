@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -80,14 +81,13 @@ public class FilmDbStorage implements FilmStorage {
                 "FROM films " +
                 "JOIN mpa m ON m.MPA_ID = films.mpa_id " +
                 "WHERE films.film_id = ?";
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sql, id);
-        if (!filmRows.next()) {
+        try {
+            Film film = jdbcTemplate.queryForObject(sql, FilmDbStorage::makeFilm, id);
+            loadGenres(Collections.singletonList(film));
+            return Optional.ofNullable(film);
+        } catch (DataAccessException e) {
             return Optional.empty();
         }
-        Film film = jdbcTemplate.queryForObject(sql, FilmDbStorage::makeFilm, id);
-        loadGenres(Collections.singletonList(film));
-
-        return Optional.ofNullable(film);
     }
 
     @Override
