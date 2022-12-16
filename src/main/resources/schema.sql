@@ -32,21 +32,39 @@ CREATE TABLE IF NOT EXISTS friendship (
     user_id         int not null,
     friend_id       int not null,
     constraint "friendship_pk"
-        PRIMARY KEY (user_id, friend_id)
+        PRIMARY KEY (user_id, friend_id),
+    constraint "friendship_user_id"
+        FOREIGN KEY (user_id)
+            REFERENCES users(user_id),
+    constraint "friendship_friend_id"
+        FOREIGN KEY (friend_id)
+            REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS films_likes (
     film_id         int not null,
     user_id         int not null,
     constraint "films_likes"
-        PRIMARY KEY (film_id, user_id)
+        PRIMARY KEY (film_id, user_id),
+    constraint "films_likes_film_id"
+        FOREIGN KEY (film_id)
+            REFERENCES films(film_id),
+    constraint "films_likes_user_id"
+        FOREIGN KEY (user_id)
+            REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS film_genre (
     film_id         int not null,
     genre_id        int not null,
     constraint "film_genre"
-        PRIMARY KEY (film_id, genre_id)
+        PRIMARY KEY (film_id, genre_id),
+    constraint "film_genre_film_id"
+        FOREIGN KEY (film_id)
+            REFERENCES films(film_id),
+    constraint "film_genre_genre_id"
+        FOREIGN KEY (genre_id)
+            REFERENCES genre(genre_id)
 );
 
 create unique index if not exists USER_EMAIL_UINDEX on USERS (email);

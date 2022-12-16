@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.yandex.practicum.filmorate.exception.DataException;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
@@ -98,8 +99,8 @@ public class UserControllerTests {
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isNotFound())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ObjectNotFoundException))
-                .andExpect(result -> assertEquals("Пользователь не найден",
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof DataException))
+                .andExpect(result -> assertEquals("Пользователь не найден в базе",
                         Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 

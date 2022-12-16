@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.DataException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
@@ -68,9 +69,10 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE FILM_ID = ?";
         deleteGenres(film);
         addGenres(film);
-        jdbcTemplate.update(sql,
+        int result = jdbcTemplate.update(sql,
                 film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
+        if (result < 1) throw new DataException("Фильм не найден в базе");
 
         return film;
     }
@@ -103,7 +105,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> addLike(int filmId, int userId) {
-        String sql = "INSERT INTO films_likes (film_id, user_id) VALUES (?, ?)";
+        String sql = "MERGE INTO films_likes (film_id, user_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, userId);
 
         return getById(filmId);
