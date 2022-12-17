@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,13 +12,9 @@ import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserService {
     private final UserStorage userDbStorage;
-
-    @Autowired
-    public UserService(UserStorage userDbStorage) {
-        this.userDbStorage = userDbStorage;
-    }
 
     public Collection<User> findAll() {
         log.info("Список пользователей отправлен");
