@@ -92,8 +92,10 @@ public class FilmDbStorage implements FilmStorage {
     public Optional<Film> deleteById(int id) {
         Optional<Film> film = getById(id);
         String genresSql = "DELETE FROM film_genre WHERE film_id = ?";
+        String likesSql = "DELETE FROM films_likes WHERE film_id = ?";
         String sql = "DELETE FROM films WHERE FILM_ID = ?";
         jdbcTemplate.update(genresSql, id);
+        jdbcTemplate.update(likesSql, id);
         jdbcTemplate.update(sql, id);
 
         return film;
