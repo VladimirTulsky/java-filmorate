@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,14 +12,10 @@ import java.util.Collection;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class GenreService {
 
     private final GenreStorage genreDbStorage;
-
-    @Autowired
-    public GenreService(GenreStorage genreDbStorage) {
-        this.genreDbStorage = genreDbStorage;
-    }
 
     public Collection<Genre> findAll() {
         log.info("Список жанров отправлен");
