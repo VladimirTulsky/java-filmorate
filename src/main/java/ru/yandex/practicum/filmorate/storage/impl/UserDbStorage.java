@@ -75,9 +75,11 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> deleteById(int id) {
         String friendshipSql = "DELETE FROM friendship WHERE user_id OR friend_id = ?";
-        String sql = "delete from USERS where USER_ID = ?";
+        String likesSql = "DELETE FROM films_likes WHERE user_id = ?";
+        String sql = "DELETE FROM users WHERE user_id = ?";
         Optional<User> user = getById(id);
         jdbcTemplate.update(friendshipSql, id);
+        jdbcTemplate.update(likesSql, id);
         jdbcTemplate.update(sql, id);
 
         return user;
