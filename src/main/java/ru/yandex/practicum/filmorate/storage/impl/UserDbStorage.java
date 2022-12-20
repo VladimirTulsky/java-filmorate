@@ -16,7 +16,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,7 +27,7 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         String sql = "select * from USERS";
 
         return jdbcTemplate.query(sql, UserDbStorage::makeUser);
@@ -74,10 +73,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> deleteById(int id) {
-        String friendshipSql = "DELETE FROM friendship WHERE user_id OR friend_id = ?";
-        String sql = "delete from USERS where USER_ID = ?";
+        String sql = "DELETE FROM users WHERE user_id = ?";
         Optional<User> user = getById(id);
-        jdbcTemplate.update(friendshipSql, id);
         jdbcTemplate.update(sql, id);
 
         return user;

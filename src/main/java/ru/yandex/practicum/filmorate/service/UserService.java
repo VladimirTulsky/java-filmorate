@@ -16,7 +16,7 @@ import java.util.*;
 public class UserService {
     private final UserStorage userDbStorage;
 
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         log.info("Список пользователей отправлен");
 
         return userDbStorage.findAll();
