@@ -12,6 +12,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DataException;
+import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
@@ -157,6 +158,8 @@ public class FilmDbStorage implements FilmStorage {
             } else {
                 name = splitter[1];
             }
+        } else {
+            throw new ObjectNotFoundException("Ключевое слово не найдено.");
         }
         if (director == null && name == null) {
             String sqlIfNull = "SELECT f.*, m.* FROM films as f JOIN mpa m ON m.mpa_id = f.mpa_id WHERE f.name = ? OR f.description = ?";
