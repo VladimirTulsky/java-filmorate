@@ -15,4 +15,7 @@ public interface FilmStorage {
     Optional<Film> addLike(int filmId, int userId);
     Optional<Film> removeLike(int filmId, int userId);
     List<Film> getBestFilms(int count);
+
+    // TODO проверить необходимость
+    List<Film> getLikedFilms(int userId);
 }

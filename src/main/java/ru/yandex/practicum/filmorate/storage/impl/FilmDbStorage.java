@@ -12,7 +12,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DataException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.*;
@@ -132,6 +134,17 @@ public class FilmDbStorage implements FilmStorage {
         loadGenres(films);
 
         return films;
+    }
+
+    // TODO проверить
+    public List<Film> getLikedFilms(int userId) {
+        String sql = "select FILM_ID " +
+                "from FILMS_LIKES " +
+                "where USER_ID = ?";
+        List<Film> likedFilms = jdbcTemplate.query(sql, FilmDbStorage::makeFilm, userId);
+        loadGenres(likedFilms);
+
+        return likedFilms;
     }
 
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
