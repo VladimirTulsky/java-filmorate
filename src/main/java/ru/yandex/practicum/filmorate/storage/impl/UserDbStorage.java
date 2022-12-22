@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DataException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,19 +20,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         String sql = "select * from USERS";
 
         return jdbcTemplate.query(sql, UserDbStorage::makeUser);
@@ -74,7 +76,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> deleteById(int id) {
-        String sql = "delete from USERS where USER_ID = ?";
+        String sql = "DELETE FROM users WHERE user_id = ?";
         Optional<User> user = getById(id);
         jdbcTemplate.update(sql, id);
 
@@ -121,6 +123,31 @@ public class UserDbStorage implements UserStorage {
 
         return jdbcTemplate.query(sql, UserDbStorage::makeUser, firstId, secondId);
     }
+
+    // TODO проверить
+    @Override
+    public Map<Integer, Integer> getUsersWithMatchingFilms(List<Integer> filmIds) {
+
+        // TODO проверить, если удалить FILM_ID из select
+        String sql = "select FILM_ID, USER_ID from FILMS_LIKES where FILM_ID in (:filmIds)";
+
+        Map<Integer, Integer> matches = new HashMap<>();
+
+        SqlParameterSource parameters = new MapSqlParameterSource("filmIds", filmIds);
+        SqlRowSet sqlRowSet = namedParameterJdbcTemplate.queryForRowSet(sql, parameters);
+        while (sqlRowSet.next()) {
+            if (matches.containsKey(sqlRowSet.getInt("USER_ID"))) {
+                int filmCount = matches.get(sqlRowSet.getInt("USER_ID")) + 1;
+                matches.put(sqlRowSet.getInt("USER_ID"), filmCount);
+            } else {
+                matches.put(sqlRowSet.getInt("USER_ID"), 1);
+            }
+        }
+
+        return matches;
+    }
+
+
 
     static User makeUser(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("user_id");

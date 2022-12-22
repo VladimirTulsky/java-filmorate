@@ -7,11 +7,13 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -21,11 +23,17 @@ public class FilmService {
     private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
     private final FilmStorage filmDbStorage;
     private final UserStorage userDbStorage;
+    private final DirectorStorage directorStorage;
+    private final GenreStorage genreStorage;
 
-    public Collection<Film> findAll() {
+    public List<Film> findAll() {
+        List<Film> films = filmDbStorage.findAll();
+        genreStorage.loadGenres(films);
+        directorStorage.loadDirectors(films);
+
         log.info("Список фильмов отправлен");
 
-        return filmDbStorage.findAll();
+        return films;
     }
 
     public Film create(Film film) {
@@ -43,12 +51,15 @@ public class FilmService {
     }
 
     public Film getById(int id) {
-        log.info("Фильм с id {} отправлен", id);
-
-        return filmDbStorage.getById(id).orElseThrow(() -> {
+        Film film = filmDbStorage.getById(id).orElseThrow(() -> {
             log.warn("Фильм с идентификатором {} не найден.", id);
             throw new ObjectNotFoundException("Фильм не найден");
         });
+        genreStorage.loadGenres(Collections.singletonList(film));
+        directorStorage.loadDirectors(Collections.singletonList(film));
+        log.info("Фильм с id {} отправлен", id);
+
+        return film;
     }
 
     public Film deleteById(int id) {
@@ -85,8 +96,25 @@ public class FilmService {
 
     public List<Film> getBestFilms(int count) {
         log.info("Отправлен список из {} самых популярных фильмов", count);
+        List<Film> films = filmDbStorage.getBestFilms(count);
+        genreStorage.loadGenres(films);
+        directorStorage.loadDirectors(films);
 
-        return filmDbStorage.getBestFilms(count);
+        return films;
+    }
+
+    public List<Film> getAllByDirector(int directorId, String sortBy) {
+        log.info("Отправлен список фильмов, отсортированный по {} ", sortBy);
+        directorStorage.getById(directorId).orElseThrow(() -> {
+            log.warn("Режиссер с id {} не найден", directorId);
+            throw new ObjectNotFoundException("Режиссер не найден");
+        });
+
+        List<Film> films = filmDbStorage.getAllByDirector(directorId, sortBy);
+        genreStorage.loadGenres(films);
+        directorStorage.loadDirectors(films);
+
+        return films;
     }
 
     private void validate(Film film) {

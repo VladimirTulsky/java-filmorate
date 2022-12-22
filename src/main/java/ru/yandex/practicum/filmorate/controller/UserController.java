@@ -21,7 +21,7 @@ public class UserController {
     private final RecommendationsService recommendationsService;
 
     @GetMapping
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         return userService.findAll();
     }
 
@@ -67,7 +67,7 @@ public class UserController {
 
     @GetMapping("{id}/recommendations")
     public List<Film> getFilmRecommendations(@PathVariable int id) {
-        return recommendationsService.
+        return null;
     }
 
 }
