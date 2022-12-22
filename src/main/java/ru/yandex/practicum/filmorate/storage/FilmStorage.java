@@ -15,4 +15,6 @@ public interface FilmStorage {
     Optional<Film> addLike(int filmId, int userId);
     Optional<Film> removeLike(int filmId, int userId);
     List<Film> getBestFilms(int count);
+
+    List<Film> searchUsingKeyWord(String query, String by);
 }

@@ -134,6 +134,43 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    @Override
+    public List<Film> searchUsingKeyWord(String query, String by) {
+        List<Film> films;
+        String director = null;
+        String name = null;
+        String sqlForAll = "select f.*, m.* " +
+                "from films as f " +
+                "join mpa as m ON m.mpa_id = f.mpa_id " +
+                "join film_director as fd on fd.film_id = f.film_id " +
+                "join directors as d on d.director_id = fd.director_id " +
+                "where f.name = ? or f.description = ? or d.name = ?";
+        if (by != null) {
+            String[] splitter = by.split(",");
+            if (splitter[0] == null) {
+                director = null;
+            } else {
+                director = splitter[0];
+            }
+            if (splitter.length != 2) {
+                name = null;
+            } else {
+                name = splitter[1];
+            }
+        }
+        if (director == null && name == null) {
+            String sqlIfNull = "SELECT f.*, m.* FROM films as f JOIN mpa m ON m.mpa_id = f.mpa_id WHERE f.name = ? OR f.description = ?";
+            films = jdbcTemplate.query(sqlIfNull, FilmDbStorage::makeFilm, query, query);
+        } else if (director != null) {
+            films = jdbcTemplate.query(sqlForAll, FilmDbStorage::makeFilm, query, query, director);
+        } else if (name != null) {
+            films = jdbcTemplate.query(sqlForAll, FilmDbStorage::makeFilm, name, query, query);
+        } else {
+            films = jdbcTemplate.query(sqlForAll, FilmDbStorage::makeFilm, name, query, director);
+        }
+        return films;
+    }
+
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("film_id");
         String name = rs.getString("name");
@@ -179,7 +216,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void deleteGenres(Film film) {
-            String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
-            jdbcTemplate.update(deleteGenres, film.getId());
+        String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
+        jdbcTemplate.update(deleteGenres, film.getId());
     }
 }
