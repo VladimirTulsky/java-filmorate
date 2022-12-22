@@ -15,4 +15,5 @@ public interface FilmStorage {
     Optional<Film> removeLike(int filmId, int userId);
     List<Film> getBestFilms(int count);
     List<Film> getAllByDirector(int count, String sortBy);
+    List<Film> getCommonFilms(int userId, int friendId);
 }
