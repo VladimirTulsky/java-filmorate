@@ -4,11 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DataException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.*;
@@ -20,6 +24,7 @@ import java.util.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public List<Film> findAll() {
@@ -80,6 +85,17 @@ public class FilmDbStorage implements FilmStorage {
         } catch (DataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<Film> getByIds(Collection<Integer> ids) {
+        String sql = "SELECT films.*, m.* " +
+                "FROM films " +
+                "JOIN mpa m ON m.MPA_ID = films.mpa_id " +
+                "WHERE films.film_id IN (:ids)";
+        SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
+
+        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
     }
 
     @Override
@@ -152,6 +168,21 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         return films;
+    }
+
+    @Override
+    public List<Integer> getUserFilms(int userId) {
+        String sql = "select FILM_ID from FILMS_LIKES where USER_ID = ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("FILM_ID"), userId);
+    }
+
+    @Override
+    public List<Integer> getUsersFilms(List<Integer> userIds) {
+        String sql = "select distinct FILM_ID from FILMS_LIKES where USER_ID in (:userIds)";
+        SqlParameterSource parameters = new MapSqlParameterSource("userIds", userIds);
+
+        return namedParameterJdbcTemplate.query(sql, parameters, (rs, rowNum) -> rs.getInt("FILM_ID"));
     }
 
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
