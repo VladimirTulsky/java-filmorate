@@ -178,7 +178,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Integer> getUserFilms(List<Integer> userIds) {
+    public List<Integer> getUsersFilms(List<Integer> userIds) {
         String sql = "select distinct FILM_ID from FILMS_LIKES where USER_ID in (:userIds)";
         SqlParameterSource parameters = new MapSqlParameterSource("userIds", userIds);
 

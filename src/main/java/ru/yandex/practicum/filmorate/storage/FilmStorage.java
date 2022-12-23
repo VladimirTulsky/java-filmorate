@@ -18,7 +18,6 @@ public interface FilmStorage {
     List<Film> getBestFilms(int count);
     List<Film> getAllByDirector(int count, String sortBy);
     List<Integer> getUserFilms(int userId);
-    List<Integer> getUserFilms(List<Integer> userIds);
-
+    List<Integer> getUsersFilms(List<Integer> userIds);
 
 }

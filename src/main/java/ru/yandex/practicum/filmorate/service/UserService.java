@@ -109,7 +109,7 @@ public class UserService {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        List<Integer> recommendedFilmsIds = filmStorage.getUserFilms(topUsers).stream()
+        List<Integer> recommendedFilmsIds = filmStorage.getUsersFilms(topUsers).stream()
                 .filter(filmId -> !userFilms.contains(filmId))
                 .collect(Collectors.toList());
 
