@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import io.swagger.models.auth.In;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
@@ -20,4 +21,7 @@ public interface FilmStorage {
     List<Film> getCommonFilms(int userId, int friendId);
     List<Integer> getUserFilms(int userId);
     List<Integer> getUsersFilms(List<Integer> userIds);
+
+    // TODO удалить, если не надо
+    List<Film> getBestFilms2(int count, Integer genre, Integer year);
 }

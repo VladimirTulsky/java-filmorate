@@ -51,6 +51,8 @@ public class FilmController {
         return filmService.removeLike(id, userId);
     }
 
+    // TODO сюда или в отдельный метод?
+    // GET /films/popular?count={limit}&genreId={genreId}&year={year}
     @GetMapping("/popular")
     public List<Film> getPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
         return filmService.getBestFilms(count);
@@ -61,7 +63,6 @@ public class FilmController {
         return filmService.getAllByDirector(directorId, sortBy);
     }
 
-    //GET /films/common?userId={userId}&friendId={friendId}
     @GetMapping("/common")
     public List<Film> getCommonFilms(@RequestParam int userId, @RequestParam int friendId) {
         return filmService.getCommonFilms(userId, friendId);
