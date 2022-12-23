@@ -124,30 +124,29 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, UserDbStorage::makeUser, firstId, secondId);
     }
 
-    // TODO проверить
     @Override
-    public Map<Integer, Integer> getUsersWithMatchingFilms(List<Integer> filmIds) {
+    public Map<Integer, Integer> getUserMatches(List<Integer> filmIds, int userId, int size) {
+        String sql = "select USER_ID, SUM(USER_ID)" +
+                "from FILMS_LIKES " +
+                "where FILM_ID in (:filmIds) " +
+                "and not USER_ID = :userId " +
+                "group by USER_ID " +
+                "order by SUM(USER_ID) desc " +
+                "limit :size";
 
-        // TODO проверить, если удалить FILM_ID из select
-        String sql = "select FILM_ID, USER_ID from FILMS_LIKES where FILM_ID in (:filmIds)";
+        SqlParameterSource parameters = new MapSqlParameterSource("filmIds", filmIds)
+                .addValue("userId", userId)
+                .addValue("size", size);
+        SqlRowSet sqlRowSet = namedParameterJdbcTemplate.queryForRowSet(sql, parameters);
 
         Map<Integer, Integer> matches = new HashMap<>();
-
-        SqlParameterSource parameters = new MapSqlParameterSource("filmIds", filmIds);
-        SqlRowSet sqlRowSet = namedParameterJdbcTemplate.queryForRowSet(sql, parameters);
         while (sqlRowSet.next()) {
-            if (matches.containsKey(sqlRowSet.getInt("USER_ID"))) {
-                int filmCount = matches.get(sqlRowSet.getInt("USER_ID")) + 1;
-                matches.put(sqlRowSet.getInt("USER_ID"), filmCount);
-            } else {
-                matches.put(sqlRowSet.getInt("USER_ID"), 1);
-            }
+            matches.put(sqlRowSet.getInt("USER_ID"),
+                    sqlRowSet.getInt("SUM(USER_ID)"));
         }
 
         return matches;
     }
-
-
 
     static User makeUser(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("user_id");

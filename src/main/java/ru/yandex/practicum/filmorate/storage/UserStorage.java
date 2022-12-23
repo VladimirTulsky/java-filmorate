@@ -17,7 +17,5 @@ public interface UserStorage {
     List<Integer> unfollowUser(int followingId, int followerId);
     List<User> getFriendsListById(int id);
     List<User> getCommonFriendsList(int firstId, int secondId);
-
-    // TODO проверить
-    Map<Integer, Integer> getUsersWithMatchingFilms(List<Integer> filmIds);
+    Map<Integer, Integer> getUserMatches(List<Integer> filmIds, int userId, int size);
 }

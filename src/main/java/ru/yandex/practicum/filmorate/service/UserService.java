@@ -5,16 +5,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.DirectorStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserService {
     private final UserStorage userDbStorage;
+    private final FilmStorage filmStorage;
+    private final GenreStorage genreStorage;
+    private final DirectorStorage directorStorage;
+    private static final int USER_MATCH_LIMIT = 20;
 
     public List<User> findAll() {
         log.info("Список пользователей отправлен");
@@ -79,6 +88,36 @@ public class UserService {
         log.info("Список общих друзей {} и {} отправлен", firstId, secondId);
 
         return userDbStorage.getCommonFriendsList(firstId, secondId);
+    }
+
+    public List<Film> getFilmRecommendations(int userId) {
+        log.info("Запрошены рекомендации для пользователя с идентификатором {}", userId);
+
+        getById(userId);
+
+        List<Integer> userFilms = filmStorage.getUserFilms(userId);
+        Map<Integer, Integer> matches = userDbStorage.getUserMatches(userFilms, userId, USER_MATCH_LIMIT);
+
+        if (matches.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        int maxValue = Collections.max(matches.values());
+
+        List<Integer> topUsers = matches.entrySet().stream()
+                .filter(entry -> entry.getValue() == maxValue)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        List<Integer> recommendedFilmsIds = filmStorage.getUserFilms(topUsers).stream()
+                .filter(filmId -> !userFilms.contains(filmId))
+                .collect(Collectors.toList());
+
+        List<Film> recommendedFilms = filmStorage.getByIds(recommendedFilmsIds);
+        genreStorage.loadGenres(recommendedFilms);
+        directorStorage.loadDirectors(recommendedFilms);
+
+        return recommendedFilms;
     }
 
     public void validate(User user) {
