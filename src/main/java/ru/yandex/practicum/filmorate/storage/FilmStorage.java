@@ -20,4 +20,6 @@ public interface FilmStorage {
     List<Film> getCommonFilms(int userId, int friendId);
     List<Integer> getUserFilms(int userId);
     List<Integer> getUsersFilms(List<Integer> userIds);
+
+    List<Film> searchUsingKeyWord(String query, String by);
 }
