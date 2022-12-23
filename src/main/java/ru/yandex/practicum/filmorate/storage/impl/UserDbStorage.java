@@ -126,12 +126,12 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Map<Integer, Integer> getUserMatches(List<Integer> filmIds, int userId, int size) {
-        String sql = "select USER_ID, SUM(USER_ID)" +
+        String sql = "select USER_ID, COUNT(*) " +
                 "from FILMS_LIKES " +
                 "where FILM_ID in (:filmIds) " +
                 "and not USER_ID = :userId " +
                 "group by USER_ID " +
-                "order by SUM(USER_ID) desc " +
+                "order by COUNT(*) desc " +
                 "limit :size";
 
         SqlParameterSource parameters = new MapSqlParameterSource("filmIds", filmIds)
@@ -142,7 +142,7 @@ public class UserDbStorage implements UserStorage {
         Map<Integer, Integer> matches = new HashMap<>();
         while (sqlRowSet.next()) {
             matches.put(sqlRowSet.getInt("USER_ID"),
-                    sqlRowSet.getInt("SUM(USER_ID)"));
+                    sqlRowSet.getInt("COUNT(*)"));
         }
 
         return matches;
