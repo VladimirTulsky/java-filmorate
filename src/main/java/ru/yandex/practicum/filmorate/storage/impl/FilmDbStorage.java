@@ -196,6 +196,46 @@ public class FilmDbStorage implements FilmStorage {
         return namedParameterJdbcTemplate.query(sql, parameters, (rs, rowNum) -> rs.getInt("FILM_ID"));
     }
 
+    @Override
+    public List<Film> searchUsingKeyWord(String query, String by) {
+        query = "%" + query + "%";
+        if (by != null) {
+            String[] splitter = by.split(",");
+            if (splitter.length == 2) {
+                String sqlIfNotNull = "select f.*, m.*, d.*" +
+                        "from films as f " +
+                        "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                        "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                        "join mpa as m on f.mpa_id = m.mpa_id " +
+                        "left join FILM_DIRECTOR fd on f.FILM_ID = fd.FILM_ID " +
+                        "left join DIRECTORS d on d.DIRECTOR_ID = fd.DIRECTOR_ID " +
+                        "where f.name ilike ? or d.name ilike ? ORDER BY fr.rating IS NULL, fr.rating DESC";
+                return jdbcTemplate.query(sqlIfNotNull, FilmDbStorage::makeFilm, query, query);
+            } else if (splitter.length == 1) {
+                if (splitter[0].matches("title")) {
+                    String sqlNameNotNull = "select f.*, m.* " +
+                            "from films f " +
+                            "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                            "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                            "left join mpa as m ON m.mpa_id = f.mpa_id " +
+                            "where f.name ilike ? order by fr.rating is null, fr.rating desc";
+                    return jdbcTemplate.query(sqlNameNotNull, FilmDbStorage::makeFilm, query);
+                } else if (splitter[0].matches("director")) {
+                    String sqlDirectorNotNull = "select f.*, m.* "
+                            + "from films as f " +
+                            "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                            "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                            "join mpa as m ON m.mpa_id = f.mpa_id " +
+                            "left join film_director as fd on fd.film_id = f.film_id " +
+                            "left join directors as d on d.director_id = fd.director_id " +
+                            "where d.name ilike ? ORDER BY fr.rating IS NULL, fr.rating DESC";
+                    return jdbcTemplate.query(sqlDirectorNotNull, FilmDbStorage::makeFilm, query);
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
+
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("film_id");
         String name = rs.getString("name");
