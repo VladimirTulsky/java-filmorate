@@ -133,6 +133,14 @@ public class FilmService {
         return films;
     }
 
+    public List<Film> searchUsingKeyWord(String query, String by) {
+        log.info("Начинаем поиск по слову {}", query);
+        List<Film> films = filmDbStorage.searchUsingKeyWord(query, by);
+        genreStorage.loadGenres(films);
+        directorStorage.loadDirectors(films);
+        return films;
+    }
+
     private void validate(Film film) {
         if (film.getReleaseDate().isBefore(FIRST_FILM_DATE))
             throw new ValidationException("В то время кино еще не было");
