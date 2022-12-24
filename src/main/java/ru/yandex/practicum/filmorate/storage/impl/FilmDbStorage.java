@@ -171,6 +171,17 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sql = "SELECT f.*, M.* " +
+                "FROM FILMS_LIKES " +
+                "JOIN FILMS_LIKES fl ON fl.FILM_ID = FILMS_LIKES.FILM_ID " +
+                "JOIN FILMS f on f.film_id = fl.film_id " +
+                "JOIN MPA M on f.mpa_id = M.MPA_ID " +
+                "WHERE fl.USER_ID = ? AND FILMS_LIKES.USER_ID = ?";
+
+        return jdbcTemplate.query(sql, FilmDbStorage::makeFilm, userId, friendId);
+    }
+
     public List<Integer> getUserFilms(int userId) {
         String sql = "select FILM_ID from FILMS_LIKES where USER_ID = ?";
 
@@ -209,8 +220,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void deleteGenres(Film film) {
-            String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
-            jdbcTemplate.update(deleteGenres, film.getId());
+        String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
+        jdbcTemplate.update(deleteGenres, film.getId());
     }
 
     private void addDirectors(Film film) {
