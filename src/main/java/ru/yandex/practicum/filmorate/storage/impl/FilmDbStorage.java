@@ -233,7 +233,6 @@ public class FilmDbStorage implements FilmStorage {
                 }
             }
         }
-
         return Collections.emptyList();
     }
 
