@@ -4,11 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DataException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.*;
@@ -20,6 +24,7 @@ import java.util.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public List<Film> findAll() {
@@ -80,6 +85,17 @@ public class FilmDbStorage implements FilmStorage {
         } catch (DataAccessException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<Film> getByIds(Collection<Integer> ids) {
+        String sql = "SELECT films.*, m.* " +
+                "FROM films " +
+                "JOIN mpa m ON m.MPA_ID = films.mpa_id " +
+                "WHERE films.film_id IN (:ids)";
+        SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
+
+        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
     }
 
     @Override
@@ -154,6 +170,72 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sql = "SELECT f.*, M.* " +
+                "FROM FILMS_LIKES " +
+                "JOIN FILMS_LIKES fl ON fl.FILM_ID = FILMS_LIKES.FILM_ID " +
+                "JOIN FILMS f on f.film_id = fl.film_id " +
+                "JOIN MPA M on f.mpa_id = M.MPA_ID " +
+                "WHERE fl.USER_ID = ? AND FILMS_LIKES.USER_ID = ?";
+
+        return jdbcTemplate.query(sql, FilmDbStorage::makeFilm, userId, friendId);
+    }
+
+    public List<Integer> getUserFilms(int userId) {
+        String sql = "select FILM_ID from FILMS_LIKES where USER_ID = ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("FILM_ID"), userId);
+    }
+
+    @Override
+    public List<Integer> getUsersFilms(List<Integer> userIds) {
+        String sql = "select distinct FILM_ID from FILMS_LIKES where USER_ID in (:userIds)";
+        SqlParameterSource parameters = new MapSqlParameterSource("userIds", userIds);
+
+        return namedParameterJdbcTemplate.query(sql, parameters, (rs, rowNum) -> rs.getInt("FILM_ID"));
+    }
+
+    @Override
+    public List<Film> searchUsingKeyWord(String query, String by) {
+        query = "%" + query + "%";
+        if (by != null) {
+            String[] splitter = by.split(",");
+            if (splitter.length == 2) {
+                String sqlIfNotNull = "select f.*, m.*, d.*" +
+                        "from films as f " +
+                        "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                        "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                        "join mpa as m on f.mpa_id = m.mpa_id " +
+                        "left join FILM_DIRECTOR fd on f.FILM_ID = fd.FILM_ID " +
+                        "left join DIRECTORS d on d.DIRECTOR_ID = fd.DIRECTOR_ID " +
+                        "where f.name ilike ? or d.name ilike ? ORDER BY fr.rating IS NULL, fr.rating DESC";
+                return jdbcTemplate.query(sqlIfNotNull, FilmDbStorage::makeFilm, query, query);
+            } else if (splitter.length == 1) {
+                if (splitter[0].matches("title")) {
+                    String sqlNameNotNull = "select f.*, m.* " +
+                            "from films f " +
+                            "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                            "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                            "left join mpa as m ON m.mpa_id = f.mpa_id " +
+                            "where f.name ilike ? order by fr.rating is null, fr.rating desc";
+                    return jdbcTemplate.query(sqlNameNotNull, FilmDbStorage::makeFilm, query);
+                } else if (splitter[0].matches("director")) {
+                    String sqlDirectorNotNull = "select f.*, m.* "
+                            + "from films as f " +
+                            "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                            "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                            "join mpa as m ON m.mpa_id = f.mpa_id " +
+                            "left join film_director as fd on fd.film_id = f.film_id " +
+                            "left join directors as d on d.director_id = fd.director_id " +
+                            "where d.name ilike ? ORDER BY fr.rating IS NULL, fr.rating DESC";
+                    return jdbcTemplate.query(sqlDirectorNotNull, FilmDbStorage::makeFilm, query);
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
+
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
         int id = rs.getInt("film_id");
         String name = rs.getString("name");
@@ -178,8 +260,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void deleteGenres(Film film) {
-            String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
-            jdbcTemplate.update(deleteGenres, film.getId());
+        String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
+        jdbcTemplate.update(deleteGenres, film.getId());
     }
 
     private void addDirectors(Film film) {

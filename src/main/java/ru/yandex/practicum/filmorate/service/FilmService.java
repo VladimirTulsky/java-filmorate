@@ -109,11 +109,35 @@ public class FilmService {
             log.warn("Режиссер с id {} не найден", directorId);
             throw new ObjectNotFoundException("Режиссер не найден");
         });
-
         List<Film> films = filmDbStorage.getAllByDirector(directorId, sortBy);
         genreStorage.loadGenres(films);
         directorStorage.loadDirectors(films);
 
+        return films;
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        userDbStorage.getById(userId).orElseThrow(() -> {
+            log.warn("Пользователь с id {} не найден", userId);
+            throw new ObjectNotFoundException("Пользователь не найден");
+        });
+        userDbStorage.getById(friendId).orElseThrow(() -> {
+            log.warn("Пользователь с id {} не найден", friendId);
+            throw new ObjectNotFoundException("Пользователь не найден");
+        });
+        log.info("Список общих фильмов отправлен");
+        List<Film> films = filmDbStorage.getCommonFilms(userId, friendId);
+        genreStorage.loadGenres(films);
+        directorStorage.loadDirectors(films);
+
+        return films;
+    }
+
+    public List<Film> searchUsingKeyWord(String query, String by) {
+        log.info("Начинаем поиск по слову {}", query);
+        List<Film> films = filmDbStorage.searchUsingKeyWord(query, by);
+        genreStorage.loadGenres(films);
+        directorStorage.loadDirectors(films);
         return films;
     }
 

@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS film_director (
         PRIMARY KEY (film_id, director_id),
     constraint "film_director_film_id"
         FOREIGN KEY (film_id)
-            REFERENCES films(film_id),
+            REFERENCES films(film_id) ON DELETE CASCADE,
     constraint "film_director_director_id"
         FOREIGN KEY (director_id)
             REFERENCES directors(director_id) ON DELETE CASCADE

@@ -60,4 +60,15 @@ public class FilmController {
     public List<Film> getAllByDirector(@PathVariable int directorId, @RequestParam String sortBy) {
         return filmService.getAllByDirector(directorId, sortBy);
     }
+
+    //GET /films/common?userId={userId}&friendId={friendId}
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam int userId, @RequestParam int friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/search")
+    public List<Film> searchUsingKeyWord(@RequestParam String query, @RequestParam String by) {
+        return filmService.searchUsingKeyWord(query, by);
+    }
 }
