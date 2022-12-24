@@ -51,11 +51,11 @@ public class FilmController {
         return filmService.removeLike(id, userId);
     }
 
-    // TODO сюда или в отдельный метод?
-    // GET /films/popular?count={limit}&genreId={genreId}&year={year}
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
-        return filmService.getBestFilms(count);
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count,
+                                                @RequestParam(required = false) Integer genreId,
+                                                @RequestParam(required = false) Integer year) {
+        return filmService.getBestFilms(count, genreId, year);
     }
 
     @GetMapping("/director/{directorId}")

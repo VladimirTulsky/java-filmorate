@@ -125,77 +125,35 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getBestFilms(int count) {
-        String sql = "SELECT films.FILM_ID, films.name, description, release_date, duration, m.mpa_id, m.name " +
-                "FROM films " +
-                "LEFT JOIN films_likes fl ON films.FILM_ID = fl.film_id " +
-                "LEFT JOIN mpa m on m.MPA_ID = films.mpa_id " +
-                "GROUP BY films.FILM_ID, fl.film_id IN ( " +
-                "SELECT film_id " +
-                "FROM films_likes " +
-                ") " +
-                "ORDER BY COUNT(fl.film_id) DESC " +
-                "LIMIT ?";
-
-        return jdbcTemplate.query(sql, FilmDbStorage::makeFilm, count);
-    }
-
-    @Override
-    public List<Film> getBestFilms2(int count, Integer genre, Integer year) {
-        String sql = "SELECT films.FILM_ID, films.name, description, release_date, duration, m.mpa_id, m.name " +
-                "FROM films " +
-                "LEFT JOIN films_likes fl ON films.FILM_ID = fl.film_id " +
-                "LEFT JOIN mpa m on m.MPA_ID = films.mpa_id " +
-                "GROUP BY films.FILM_ID, fl.film_id IN ( " +
-                "SELECT film_id " +
-                "FROM films_likes " +
-                ") " +
-                "ORDER BY COUNT(fl.film_id) DESC " +
-                "LIMIT ?";
-
-        // TODO проверить
-        String sqlGenre = "select FILMS.FILM_ID, FILMS.NAME, DESCRIPTION, RELEASE_DATE, DURATION, m.MPA_ID, m.NAME " +
-                "from FILMS " +
-                "left join FILMS_LIKES fl ON FILMS.FILM_ID = fl.FILM_ID " +
-                "left join MPA m on m.MPA_ID = FILMS.MPA_ID " +
-                "join FILM_GENRE fg on FILMS.FILM_ID = fg.FILM_ID " +
-                "where fg.GENRE_ID = :genre " +
-                "group by films.FILM_ID, fl.film_id IN ( " +
-                "SELECT film_id " +
-                "FROM films_likes " +
-                ") " +
-                "ORDER BY COUNT(fl.film_id) DESC " +
-                "LIMIT :count";
-
-        // TODO проверить
-        String sqlYear = "select FILMS.FILM_ID, FILMS.NAME, DESCRIPTION, RELEASE_DATE, DURATION, m.MPA_ID, m.NAME " +
-                "from FILMS " +
-                "left join FILMS_LIKES fl ON FILMS.FILM_ID = fl.FILM_ID " +
-                "left join MPA m on m.MPA_ID = FILMS.MPA_ID " +
-                "where EXTRACT(YEAR FROM cast(RELEASE_DATE AS date)) = :year " +
-                "group by films.FILM_ID, fl.film_id IN ( " +
-                "SELECT film_id " +
-                "FROM films_likes " +
-                ") " +
-                "ORDER BY COUNT(fl.film_id) DESC " +
-                "LIMIT :count";
-
-        if (genre != null && year != null) {
-            // TODO дописать
-            return null;
-        }
+    public List<Film> getBestFilms(int count, Integer genre, Integer year) {
+        final StringBuilder sqlBuilder = new StringBuilder(
+                "select FILMS.FILM_ID, FILMS.NAME, DESCRIPTION, RELEASE_DATE, DURATION, m.MPA_ID, m.NAME " +
+                        "from FILMS " +
+                        "left join FILMS_LIKES fl ON FILMS.FILM_ID = fl.FILM_ID " +
+                        "left join MPA m on m.MPA_ID = FILMS.MPA_ID " +
+                        "left join FILM_GENRE fg on FILMS.FILM_ID = fg.FILM_ID " +
+                        "where 1=1 "
+        );
         if (genre != null) {
-            SqlParameterSource parameters = new MapSqlParameterSource("genre", genre)
-                    .addValue("count", count);
-            return namedParameterJdbcTemplate.query(sqlGenre, parameters, FilmDbStorage::makeFilm);
+            sqlBuilder.append("and fg.GENRE_ID = :genre ");
         }
         if (year != null) {
-            SqlParameterSource parameters = new MapSqlParameterSource("year", year)
-                    .addValue("count", count);
-            return namedParameterJdbcTemplate.query(sqlYear, parameters, FilmDbStorage::makeFilm);
+            sqlBuilder.append("and EXTRACT(YEAR FROM cast(RELEASE_DATE AS date)) = :year ");
         }
+        sqlBuilder.append(
+                "group by FILMS.FILM_ID, fl.FILM_ID IN ( " +
+                        "select FILM_ID " +
+                        "from FILMS_LIKES " +
+                        ") " +
+                        "order by COUNT(fl.film_id) DESC " +
+                        "limit :count;"
+        );
+        final String sql = sqlBuilder.toString();
 
-        return jdbcTemplate.query(sql, FilmDbStorage::makeFilm, count);
+        SqlParameterSource parameters = new MapSqlParameterSource("genre", genre)
+                .addValue("year", year)
+                .addValue("count", count);
+        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
     }
 
     @Override
