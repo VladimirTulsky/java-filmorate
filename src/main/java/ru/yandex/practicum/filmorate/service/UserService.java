@@ -88,7 +88,7 @@ public class UserService {
         return userDbStorage.getCommonFriendsList(firstId, secondId);
     }
 
-    public List<Film> getFilmRecommendations(int userId) {
+    public List<Film> getRecommendedFilms(int userId) {
         getById(userId);
         log.info("Запрошены рекомендации для пользователя с идентификатором {}", userId);
 
