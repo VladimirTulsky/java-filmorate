@@ -230,7 +230,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         return Collections.emptyList();
     }
-
+    
     @Override
     public List<Film> getRecommendedFilms(int userId) {
         String sql = "select FILMS.*, m.* " +
