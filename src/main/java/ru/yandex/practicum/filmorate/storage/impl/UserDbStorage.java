@@ -88,7 +88,6 @@ public class UserDbStorage implements UserStorage {
         String sqlForWrite = "MERGE INTO FRIENDSHIP (USER_ID, FRIEND_ID) " +
                 "VALUES (?, ?)";
         jdbcTemplate.update(sqlForWrite, followerId, followingId);
-
         return List.of(followerId, followingId);
     }
 
