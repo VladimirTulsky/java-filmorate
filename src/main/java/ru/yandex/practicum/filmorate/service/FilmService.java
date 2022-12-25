@@ -94,9 +94,10 @@ public class FilmService {
         });
     }
 
-    public List<Film> getBestFilms(int count) {
-        log.info("Отправлен список из {} самых популярных фильмов", count);
-        List<Film> films = filmDbStorage.getBestFilms(count);
+    public List<Film> getBestFilms(int count, Integer genreId, Integer year) {
+        log.info("Запрошен список популярных фильмов. " +
+                "Параметры: count={}, genreId={}, year={}", count, genreId, year);
+        List<Film> films = filmDbStorage.getBestFilms(count, genreId, year);
         genreStorage.loadGenres(films);
         directorStorage.loadDirectors(films);
 
