@@ -7,13 +7,12 @@ import java.util.Optional;
 
 public interface ReviewStorage {
     Review create(Review review);
-    Review update(Review review);
+    Optional<Review> update(Review review);
     Optional<Review> deleteById(int id);
     Optional<Review> getById(int id);
     List<Review> getReviewsByFilmId(int filmId, int count);
-    Optional<Review> addLike(int reviewId, int userId, boolean like);
-    Optional<Review> removeLike(int reviewId, int userId, boolean like);
-
-    Boolean contains(int id, int userId, boolean isLike);
+    void addLike(int reviewId, int userId, boolean like);
+    void removeLike(int reviewId, int userId, boolean like);
+    Boolean contains(int id, int userId, boolean like);
     void updateUseful(int id, int likeCount);
 }
