@@ -214,7 +214,9 @@ public class FilmControllerTests {
                         get("/films/popular")
                 )
                 .andExpect(status().isOk())
-                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2).get(0).getName(), "2 Film"))
-                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2).get(1).getName(), "Film"));
+                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2, null, null)
+                        .get(0).getName(), "2 Film"))
+                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2, null, null)
+                        .get(1).getName(), "Film"));
     }
 }
