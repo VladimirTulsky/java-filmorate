@@ -10,11 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.enums.EventType.FRIEND;
 import static ru.yandex.practicum.filmorate.enums.OperationType.ADD;
