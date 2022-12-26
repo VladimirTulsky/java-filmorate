@@ -88,17 +88,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getByIds(Collection<Integer> ids) {
-        String sql = "SELECT films.*, m.* " +
-                "FROM films " +
-                "JOIN mpa m ON m.MPA_ID = films.mpa_id " +
-                "WHERE films.film_id IN (:ids)";
-        SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
-
-        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
-    }
-
-    @Override
     public Optional<Film> deleteById(int id) {
         Optional<Film> film = getById(id);
         String sql = "DELETE FROM films WHERE FILM_ID = ?";
@@ -127,32 +116,36 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getBestFilms(int count, Integer genre, Integer year) {
         final StringBuilder sqlBuilder = new StringBuilder(
-                "select FILMS.FILM_ID, FILMS.NAME, DESCRIPTION, RELEASE_DATE, DURATION, m.MPA_ID, m.NAME " +
-                        "from FILMS " +
-                        "left join FILMS_LIKES fl ON FILMS.FILM_ID = fl.FILM_ID " +
-                        "left join MPA m on m.MPA_ID = FILMS.MPA_ID " +
-                        "left join FILM_GENRE fg on FILMS.FILM_ID = fg.FILM_ID " +
-                        "where 1=1 "
+                "SELECT films.FILM_ID, films.name, description, release_date, duration, m.mpa_id, m.name " +
+                        "FROM films " +
+                        "LEFT JOIN films_likes fl ON films.FILM_ID = fl.film_id " +
+                        "LEFT JOIN mpa m ON m.MPA_ID = films.mpa_id "
         );
-        if (genre != null) {
-            sqlBuilder.append("and fg.GENRE_ID = :genre ");
+        if (genre != null && year != null) {
+            sqlBuilder.append("LEFT JOIN film_genre fg ON films.FILM_ID = fg.film_id " +
+                    "WHERE fg.genre_id = :genre " +
+                    "AND EXTRACT(YEAR FROM cast(release_date AS date)) = :year ");
         }
-        if (year != null) {
-            sqlBuilder.append("and EXTRACT(YEAR FROM cast(RELEASE_DATE AS date)) = :year ");
+        if (genre != null && year == null) {
+            sqlBuilder.append("LEFT JOIN film_genre fg ON films.FILM_ID = fg.film_id " +
+                    "WHERE fg.GENRE_ID = :genre ");
+        }
+        if (genre == null && year != null) {
+            sqlBuilder.append("WHERE EXTRACT(YEAR FROM cast(release_date AS date)) = :year ");
         }
         sqlBuilder.append(
-                "group by FILMS.FILM_ID, fl.FILM_ID IN ( " +
-                        "select FILM_ID " +
-                        "from FILMS_LIKES " +
-                        ") " +
-                        "order by COUNT(fl.film_id) DESC " +
-                        "limit :count;"
+                "GROUP BY films.FILM_ID, " +
+                        "fl.film_id IN (SELECT film_id " +
+                        "FROM films_likes) " +
+                "ORDER BY COUNT(fl.film_id) DESC " +
+                "LIMIT :count ;"
         );
+
         final String sql = sqlBuilder.toString();
 
-        SqlParameterSource parameters = new MapSqlParameterSource("genre", genre)
-                .addValue("year", year)
-                .addValue("count", count);
+        SqlParameterSource parameters = new MapSqlParameterSource("count", count)
+                .addValue("genre", genre)
+                .addValue("year", year);
         return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
     }
 
@@ -198,20 +191,6 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, FilmDbStorage::makeFilm, userId, friendId);
     }
 
-    public List<Integer> getUserFilms(int userId) {
-        String sql = "select FILM_ID from FILMS_LIKES where USER_ID = ?";
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("FILM_ID"), userId);
-    }
-
-    @Override
-    public List<Integer> getUsersFilms(List<Integer> userIds) {
-        String sql = "select distinct FILM_ID from FILMS_LIKES where USER_ID in (:userIds)";
-        SqlParameterSource parameters = new MapSqlParameterSource("userIds", userIds);
-
-        return namedParameterJdbcTemplate.query(sql, parameters, (rs, rowNum) -> rs.getInt("FILM_ID"));
-    }
-
     @Override
     public List<Film> searchUsingKeyWord(String query, String by) {
         query = "%" + query + "%";
@@ -250,6 +229,33 @@ public class FilmDbStorage implements FilmStorage {
             }
         }
         return Collections.emptyList();
+    }
+    
+    @Override
+    public List<Film> getRecommendedFilms(int userId) {
+        String sql = "select FILMS.*, m.* " +
+                "from FILMS " +
+                "join MPA m ON m.MPA_ID = FILMS.MPA_ID " +
+                "where FILMS.FILM_ID in (select distinct FILM_ID " +
+                                        "from FILMS_LIKES " +
+                                        "where USER_ID in (select USER_ID " +
+                                                          "from (select USER_ID, COUNT(*) matches " +
+                                                                "from FILMS_LIKES " +
+                                                                "where not USER_ID = :userId " +
+                                                                "and FILM_ID in (select FILM_ID " +
+                                                                                "from FILMS_LIKES " +
+                                                                                "where USER_ID = :userId) " +
+                                                                "group by USER_ID " +
+                                                                "order by COUNT(*) desc) " +
+                                                          "group by USER_ID " +
+                                                          "having matches = MAX(matches)) " +
+                                        "and FILM_ID not in (select FILM_ID " +
+                                                            "from FILMS_LIKES " +
+                                                            "where USER_ID = :userId));";
+
+        SqlParameterSource parameters = new MapSqlParameterSource("userId", userId);
+
+        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
     }
 
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {

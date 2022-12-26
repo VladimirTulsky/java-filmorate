@@ -4,12 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.DataException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -27,7 +23,6 @@ import java.util.*;
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public List<User> findAll() {
@@ -121,30 +116,6 @@ public class UserDbStorage implements UserStorage {
                 "WHERE f.user_id = ? )";
 
         return jdbcTemplate.query(sql, UserDbStorage::makeUser, firstId, secondId);
-    }
-
-    @Override
-    public Map<Integer, Integer> getUserMatches(List<Integer> filmIds, int userId, int size) {
-        String sql = "select USER_ID, COUNT(*) " +
-                "from FILMS_LIKES " +
-                "where FILM_ID in (:filmIds) " +
-                "and not USER_ID = :userId " +
-                "group by USER_ID " +
-                "order by COUNT(*) desc " +
-                "limit :size";
-
-        SqlParameterSource parameters = new MapSqlParameterSource("filmIds", filmIds)
-                .addValue("userId", userId)
-                .addValue("size", size);
-        SqlRowSet sqlRowSet = namedParameterJdbcTemplate.queryForRowSet(sql, parameters);
-
-        Map<Integer, Integer> matches = new HashMap<>();
-        while (sqlRowSet.next()) {
-            matches.put(sqlRowSet.getInt("USER_ID"),
-                    sqlRowSet.getInt("COUNT(*)"));
-        }
-
-        return matches;
     }
 
     static User makeUser(ResultSet rs, int rowNum) throws SQLException {

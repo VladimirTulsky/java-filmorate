@@ -29,7 +29,6 @@ public class UserService {
     private final GenreStorage genreStorage;
     private final DirectorStorage directorStorage;
     private final FeedStorage feedStorage;
-    private static final int USER_MATCH_LIMIT = 20;
 
     public List<User> findAll() {
         log.info("Список пользователей отправлен");
@@ -96,30 +95,11 @@ public class UserService {
         return userDbStorage.getCommonFriendsList(firstId, secondId);
     }
 
-    public List<Film> getFilmRecommendations(int userId) {
+    public List<Film> getRecommendedFilms(int userId) {
+        getById(userId);
         log.info("Запрошены рекомендации для пользователя с идентификатором {}", userId);
 
-        getById(userId);
-
-        List<Integer> userFilms = filmStorage.getUserFilms(userId);
-        Map<Integer, Integer> matches = userDbStorage.getUserMatches(userFilms, userId, USER_MATCH_LIMIT);
-
-        if (matches.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        int maxValue = Collections.max(matches.values());
-
-        List<Integer> topUsers = matches.entrySet().stream()
-                .filter(entry -> entry.getValue() == maxValue)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
-
-        List<Integer> recommendedFilmsIds = filmStorage.getUsersFilms(topUsers).stream()
-                .filter(filmId -> !userFilms.contains(filmId))
-                .collect(Collectors.toList());
-
-        List<Film> recommendedFilms = filmStorage.getByIds(recommendedFilmsIds);
+        List<Film> recommendedFilms = filmStorage.getRecommendedFilms(userId);
         genreStorage.loadGenres(recommendedFilms);
         directorStorage.loadDirectors(recommendedFilms);
 
