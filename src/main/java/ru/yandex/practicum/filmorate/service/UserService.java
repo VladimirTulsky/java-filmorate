@@ -7,12 +7,18 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.DirectorStorage;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
-import java.util.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static ru.yandex.practicum.filmorate.enums.EventType.FRIEND;
+import static ru.yandex.practicum.filmorate.enums.OperationType.ADD;
+import static ru.yandex.practicum.filmorate.enums.OperationType.REMOVE;
 
 @Service
 @Slf4j
@@ -22,6 +28,7 @@ public class UserService {
     private final FilmStorage filmStorage;
     private final GenreStorage genreStorage;
     private final DirectorStorage directorStorage;
+    private final FeedStorage feedStorage;
 
     public List<User> findAll() {
         log.info("Список пользователей отправлен");
@@ -64,13 +71,13 @@ public class UserService {
     public List<Integer> followUser(int followerId, int followingId) {
         usersValidation(followerId, followingId);
         log.info("Пользователь {} подписался на {}", followerId, followingId);
-
+        feedStorage.addFeed(followingId, followerId, Instant.now().toEpochMilli(), FRIEND, ADD);
         return userDbStorage.followUser(followerId, followingId);
     }
 
     public List<Integer> unfollowUser(int followerId, int followingId) {
         log.info("Пользователь {} отписался от {}", followerId, followingId);
-
+        feedStorage.addFeed(followingId, followerId, Instant.now().toEpochMilli(), FRIEND, REMOVE);
         return userDbStorage.unfollowUser(followerId, followingId);
     }
 
