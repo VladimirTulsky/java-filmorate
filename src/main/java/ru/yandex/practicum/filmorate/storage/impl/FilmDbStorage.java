@@ -88,17 +88,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getByIds(Collection<Integer> ids) {
-        String sql = "SELECT films.*, m.* " +
-                "FROM films " +
-                "JOIN mpa m ON m.MPA_ID = films.mpa_id " +
-                "WHERE films.film_id IN (:ids)";
-        SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
-
-        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
-    }
-
-    @Override
     public Optional<Film> deleteById(int id) {
         Optional<Film> film = getById(id);
         String sql = "DELETE FROM films WHERE FILM_ID = ?";
@@ -125,19 +114,39 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getBestFilms(int count) {
-        String sql = "SELECT films.FILM_ID, films.name, description, release_date, duration, m.mpa_id, m.name " +
-                "FROM films " +
-                "LEFT JOIN films_likes fl ON films.FILM_ID = fl.film_id " +
-                "LEFT JOIN mpa m on m.MPA_ID = films.mpa_id " +
-                "GROUP BY films.FILM_ID, fl.film_id IN ( " +
-                "SELECT film_id " +
-                "FROM films_likes " +
-                ") " +
+    public List<Film> getBestFilms(int count, Integer genre, Integer year) {
+        final StringBuilder sqlBuilder = new StringBuilder(
+                "SELECT films.FILM_ID, films.name, description, release_date, duration, m.mpa_id, m.name " +
+                        "FROM films " +
+                        "LEFT JOIN films_likes fl ON films.FILM_ID = fl.film_id " +
+                        "LEFT JOIN mpa m ON m.MPA_ID = films.mpa_id "
+        );
+        if (genre != null && year != null) {
+            sqlBuilder.append("LEFT JOIN film_genre fg ON films.FILM_ID = fg.film_id " +
+                    "WHERE fg.genre_id = :genre " +
+                    "AND EXTRACT(YEAR FROM cast(release_date AS date)) = :year ");
+        }
+        if (genre != null && year == null) {
+            sqlBuilder.append("LEFT JOIN film_genre fg ON films.FILM_ID = fg.film_id " +
+                    "WHERE fg.GENRE_ID = :genre ");
+        }
+        if (genre == null && year != null) {
+            sqlBuilder.append("WHERE EXTRACT(YEAR FROM cast(release_date AS date)) = :year ");
+        }
+        sqlBuilder.append(
+                "GROUP BY films.FILM_ID, " +
+                        "fl.film_id IN (SELECT film_id " +
+                        "FROM films_likes) " +
                 "ORDER BY COUNT(fl.film_id) DESC " +
-                "LIMIT ?";
+                "LIMIT :count ;"
+        );
 
-        return jdbcTemplate.query(sql, FilmDbStorage::makeFilm, count);
+        final String sql = sqlBuilder.toString();
+
+        SqlParameterSource parameters = new MapSqlParameterSource("count", count)
+                .addValue("genre", genre)
+                .addValue("year", year);
+        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
     }
 
     @Override
@@ -181,19 +190,72 @@ public class FilmDbStorage implements FilmStorage {
 
         return jdbcTemplate.query(sql, FilmDbStorage::makeFilm, userId, friendId);
     }
-    
-    public List<Integer> getUserFilms(int userId) {
-        String sql = "select FILM_ID from FILMS_LIKES where USER_ID = ?";
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("FILM_ID"), userId);
-    }
 
     @Override
-    public List<Integer> getUsersFilms(List<Integer> userIds) {
-        String sql = "select distinct FILM_ID from FILMS_LIKES where USER_ID in (:userIds)";
-        SqlParameterSource parameters = new MapSqlParameterSource("userIds", userIds);
+    public List<Film> searchUsingKeyWord(String query, String by) {
+        query = "%" + query + "%";
+        if (by != null) {
+            String[] splitter = by.split(",");
+            if (splitter.length == 2) {
+                String sqlIfNotNull = "select f.*, m.*, d.*" +
+                        "from films as f " +
+                        "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                        "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                        "join mpa as m on f.mpa_id = m.mpa_id " +
+                        "left join FILM_DIRECTOR fd on f.FILM_ID = fd.FILM_ID " +
+                        "left join DIRECTORS d on d.DIRECTOR_ID = fd.DIRECTOR_ID " +
+                        "where f.name ilike ? or d.name ilike ? ORDER BY fr.rating IS NULL, fr.rating DESC";
+                return jdbcTemplate.query(sqlIfNotNull, FilmDbStorage::makeFilm, query, query);
+            } else if (splitter.length == 1) {
+                if (splitter[0].matches("title")) {
+                    String sqlNameNotNull = "select f.*, m.* " +
+                            "from films f " +
+                            "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                            "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                            "left join mpa as m ON m.mpa_id = f.mpa_id " +
+                            "where f.name ilike ? order by fr.rating is null, fr.rating desc";
+                    return jdbcTemplate.query(sqlNameNotNull, FilmDbStorage::makeFilm, query);
+                } else if (splitter[0].matches("director")) {
+                    String sqlDirectorNotNull = "select f.*, m.* "
+                            + "from films as f " +
+                            "left join (select  fl.film_id, COUNT(fl.user_id) as rating " +
+                            "from films_likes as fl group by fl.film_id) as fr on f.film_id=fr.film_id " +
+                            "join mpa as m ON m.mpa_id = f.mpa_id " +
+                            "left join film_director as fd on fd.film_id = f.film_id " +
+                            "left join directors as d on d.director_id = fd.director_id " +
+                            "where d.name ilike ? ORDER BY fr.rating IS NULL, fr.rating DESC";
+                    return jdbcTemplate.query(sqlDirectorNotNull, FilmDbStorage::makeFilm, query);
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
+    
+    @Override
+    public List<Film> getRecommendedFilms(int userId) {
+        String sql = "select FILMS.*, m.* " +
+                "from FILMS " +
+                "join MPA m ON m.MPA_ID = FILMS.MPA_ID " +
+                "where FILMS.FILM_ID in (select distinct FILM_ID " +
+                                        "from FILMS_LIKES " +
+                                        "where USER_ID in (select USER_ID " +
+                                                          "from (select USER_ID, COUNT(*) matches " +
+                                                                "from FILMS_LIKES " +
+                                                                "where not USER_ID = :userId " +
+                                                                "and FILM_ID in (select FILM_ID " +
+                                                                                "from FILMS_LIKES " +
+                                                                                "where USER_ID = :userId) " +
+                                                                "group by USER_ID " +
+                                                                "order by COUNT(*) desc) " +
+                                                          "group by USER_ID " +
+                                                          "having matches = MAX(matches)) " +
+                                        "and FILM_ID not in (select FILM_ID " +
+                                                            "from FILMS_LIKES " +
+                                                            "where USER_ID = :userId));";
 
-        return namedParameterJdbcTemplate.query(sql, parameters, (rs, rowNum) -> rs.getInt("FILM_ID"));
+        SqlParameterSource parameters = new MapSqlParameterSource("userId", userId);
+
+        return namedParameterJdbcTemplate.query(sql, parameters, FilmDbStorage::makeFilm);
     }
 
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
@@ -220,8 +282,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void deleteGenres(Film film) {
-            String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
-            jdbcTemplate.update(deleteGenres, film.getId());
+        String deleteGenres = "DELETE FROM film_genre WHERE film_id = ?";
+        jdbcTemplate.update(deleteGenres, film.getId());
     }
 
     private void addDirectors(Film film) {
