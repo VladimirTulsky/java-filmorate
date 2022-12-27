@@ -14,7 +14,7 @@ import java.util.LinkedHashSet;
 public class Film {
 
     @PositiveOrZero
-    private int id;
+    private long id;
     @NotBlank(message = "Некорректное название фильма")
     @Size(max = 60, message = "Слишком длинное название фильма")
     private String name;

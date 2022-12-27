@@ -45,7 +45,7 @@ public class DirectorDbStorage implements DirectorStorage {
             stmt.setString(1, director.getName());
             return stmt;
         }, keyHolder);
-        director.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+        director.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
 
         return director;
     }
@@ -60,7 +60,7 @@ public class DirectorDbStorage implements DirectorStorage {
     }
 
     @Override
-    public Optional<Director> getById(int id) {
+    public Optional<Director> getById(long id) {
         String sql = "SELECT * FROM directors WHERE director_id = ?";
         try {
             return Optional.ofNullable(jdbcTemplate.queryForObject(sql, DirectorDbStorage::makeDirector, id));
@@ -70,16 +70,13 @@ public class DirectorDbStorage implements DirectorStorage {
     }
 
     @Override
-    public Optional<Director> deleteById(int id) {
-        Optional<Director> director = getById(id);
+    public int deleteById(long id) {
         String sql = "DELETE FROM directors WHERE director_id = ?";
-        jdbcTemplate.update(sql, id);
-
-        return director;
+        return jdbcTemplate.update(sql, id);
     }
 
     static Director makeDirector(ResultSet rs, int rowNum) throws SQLException {
-        int director_id = rs.getInt("director_id");
+        long director_id = rs.getLong("director_id");
         String name = rs.getString("name");
 
         return new Director(director_id, name);
@@ -91,16 +88,16 @@ public class DirectorDbStorage implements DirectorStorage {
                 "FROM FILM_DIRECTOR " +
                 "JOIN DIRECTORS D on D.DIRECTOR_ID = FILM_DIRECTOR.DIRECTOR_ID " +
                 "WHERE FILM_ID IN (:ids)";
-        List<Integer> ids = films.stream()
+        List<Long> ids = films.stream()
                 .map(Film::getId)
                 .collect(Collectors.toList());
-        Map<Integer, Film> filmMap = films.stream()
+        Map<Long, Film> filmMap = films.stream()
                 .collect(Collectors.toMap(Film::getId, film -> film, (a, b) -> b));
         SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
         SqlRowSet sqlRowSet = namedJdbcTemplate.queryForRowSet(sqlDirectors, parameters);
         while (sqlRowSet.next()) {
-            int filmId = sqlRowSet.getInt("film_id");
-            int directorId = sqlRowSet.getInt("director_id");
+            long filmId = sqlRowSet.getLong("film_id");
+            long directorId = sqlRowSet.getLong("director_id");
             String name = sqlRowSet.getString("name");
             filmMap.get(filmId).getDirectors().add(new Director(directorId, name));
         }

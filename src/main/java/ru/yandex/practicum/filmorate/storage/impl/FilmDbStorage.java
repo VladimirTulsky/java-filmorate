@@ -74,7 +74,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> getById(int id) {
+    public Optional<Film> getById(long id) {
         String sql = "SELECT films.*, m.* " +
                 "FROM films " +
                 "JOIN mpa m ON m.MPA_ID = films.mpa_id " +
@@ -88,16 +88,13 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> deleteById(int id) {
-        Optional<Film> film = getById(id);
+    public int deleteById(long id) {
         String sql = "DELETE FROM films WHERE FILM_ID = ?";
-        jdbcTemplate.update(sql, id);
-
-        return film;
+        return jdbcTemplate.update(sql, id);
     }
 
     @Override
-    public Optional<Film> addLike(int filmId, int userId) {
+    public Optional<Film> addLike(long filmId, long userId) {
         String sql = "MERGE INTO films_likes (film_id, user_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, userId);
 
@@ -105,7 +102,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> removeLike(int filmId, int userId) {
+    public Optional<Film> removeLike(long filmId, long userId) {
         String sql = "DELETE FROM films_likes " +
                 "WHERE film_id = ? AND user_id = ?";
         jdbcTemplate.update(sql, filmId, userId);
@@ -150,7 +147,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getAllByDirector(int directorId, String sortBy) {
+    public List<Film> getAllByDirector(long directorId, String sortBy) {
         String sortedByLikes = "SELECT f.*, M.*, FD.DIRECTOR_ID " +
                 "FROM FILM_DIRECTOR FD " +
                 "JOIN FILMS F on F.FILM_ID = FD.FILM_ID " +
@@ -180,7 +177,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getCommonFilms(int userId, int friendId) {
+    public List<Film> getCommonFilms(long userId, long friendId) {
         String sql = "SELECT f.*, M.* " +
                 "FROM FILMS_LIKES " +
                 "JOIN FILMS_LIKES fl ON fl.FILM_ID = FILMS_LIKES.FILM_ID " +
@@ -232,7 +229,7 @@ public class FilmDbStorage implements FilmStorage {
     }
     
     @Override
-    public List<Film> getRecommendedFilms(int userId) {
+    public List<Film> getRecommendedFilms(long userId) {
         String sql = "select FILMS.*, m.* " +
                 "from FILMS " +
                 "join MPA m ON m.MPA_ID = FILMS.MPA_ID " +
@@ -259,7 +256,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     static Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("film_id");
+        long id = rs.getLong("film_id");
         String name = rs.getString("name");
         String description = rs.getString("description");
         LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
@@ -275,8 +272,8 @@ public class FilmDbStorage implements FilmStorage {
             jdbcTemplate.batchUpdate(
                     updateGenres, film.getGenres(), film.getGenres().size(),
                     (ps, genre) -> {
-                        ps.setInt(1, film.getId());
-                        ps.setInt(2, genre.getId());
+                        ps.setLong(1, film.getId());
+                        ps.setLong(2, genre.getId());
                     });
         } else film.setGenres(new LinkedHashSet<>());
     }
@@ -292,8 +289,8 @@ public class FilmDbStorage implements FilmStorage {
             jdbcTemplate.batchUpdate(
                     updateGenres, film.getDirectors(), film.getDirectors().size(),
                     (ps, dir) -> {
-                        ps.setInt(1, film.getId());
-                        ps.setInt(2, dir.getId());
+                        ps.setLong(1, film.getId());
+                        ps.setLong(2, dir.getId());
                     });
         } else film.setDirectors(new LinkedHashSet<>());
     }

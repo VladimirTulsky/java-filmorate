@@ -10,7 +10,7 @@ public interface DirectorStorage {
     List<Director> findAll();
     Director create(Director director);
     Director update(Director director);
-    Optional<Director> getById(int id);
-    Optional<Director> deleteById(int id);
+    Optional<Director> getById(long id);
+    int deleteById(long id);
     void loadDirectors(List<Film> films);
 }

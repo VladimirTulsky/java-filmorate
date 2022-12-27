@@ -32,22 +32,22 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Film getById(@PathVariable int id) {
+    public Film getById(@PathVariable long id) {
         return filmService.getById(id);
     }
 
     @DeleteMapping("/{id}")
-    public Film deleteById(@PathVariable int id) {
-        return filmService.deleteById(id);
+    public void deleteById(@PathVariable long id) {
+        filmService.deleteById(id);
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public Film addLike(@PathVariable int id, @PathVariable int userId) {
+    public Film addLike(@PathVariable long id, @PathVariable long userId) {
         return filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public Film removeLike(@PathVariable int id, @PathVariable int userId) {
+    public Film removeLike(@PathVariable long id, @PathVariable long userId) {
         return filmService.removeLike(id, userId);
     }
 
@@ -59,12 +59,12 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<Film> getAllByDirector(@PathVariable int directorId, @RequestParam String sortBy) {
+    public List<Film> getAllByDirector(@PathVariable long directorId, @RequestParam String sortBy) {
         return filmService.getAllByDirector(directorId, sortBy);
     }
 
     @GetMapping("/common")
-    public List<Film> getCommonFilms(@RequestParam int userId, @RequestParam int friendId) {
+    public List<Film> getCommonFilms(@RequestParam long userId, @RequestParam long friendId) {
         return filmService.getCommonFilms(userId, friendId);
     }
 

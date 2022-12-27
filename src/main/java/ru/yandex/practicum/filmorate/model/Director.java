@@ -12,7 +12,7 @@ import javax.validation.constraints.PositiveOrZero;
 @EqualsAndHashCode
 public class Director {
     @PositiveOrZero
-    private int id;
+    private long id;
     @NotBlank
     private String name;
 }

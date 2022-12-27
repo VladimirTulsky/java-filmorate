@@ -17,15 +17,15 @@ import javax.validation.constraints.Size;
 public class Review {
 
     @PositiveOrZero
-    private int reviewId;
+    private long reviewId;
     @NotBlank(message = "Отсутствует текст отзыва")
     @Size(max = 200, message = "Слишком длинный отзыв")
     private String content;
     private Boolean isPositive;
     @NotNull(message = "Необходимо указать пользователя")
-    private int userId;
+    private long userId;
     @NotNull(message = "Необходимо указать фильм")
-    private int filmId;
+    private long filmId;
     private int useful;
 
 }
