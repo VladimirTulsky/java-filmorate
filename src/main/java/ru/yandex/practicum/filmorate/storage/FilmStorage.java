@@ -9,13 +9,13 @@ public interface FilmStorage {
     List<Film> findAll();
     Film create(Film film);
     Film update(Film film);
-    Optional<Film> getById(int id);
-    Optional<Film> deleteById(int id);
-    Optional<Film> addLike(int filmId, int userId);
-    Optional<Film> removeLike(int filmId, int userId);
+    Optional<Film> getById(long id);
+    int deleteById(long id);
+    Optional<Film> addLike(long filmId, long userId);
+    Optional<Film> removeLike(long filmId, long userId);
     List<Film> getBestFilms(int count, Integer genre, Integer year);
-    List<Film> getAllByDirector(int count, String sortBy);
-    List<Film> getCommonFilms(int userId, int friendId);
+    List<Film> getAllByDirector(long directorId, String sortBy);
+    List<Film> getCommonFilms(long userId, long friendId);
     List<Film> searchUsingKeyWord(String query, String by);
-    List<Film> getRecommendedFilms(int userId);
+    List<Film> getRecommendedFilms(long userId);
 }

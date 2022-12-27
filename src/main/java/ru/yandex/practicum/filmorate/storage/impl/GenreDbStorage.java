@@ -57,15 +57,15 @@ public class GenreDbStorage implements GenreStorage {
                 "FROM FILM_GENRE " +
                 "JOIN genre g2 ON g2.genre_id = film_genre.genre_id " +
                 "WHERE film_id IN (:ids)";
-        List<Integer> ids = films.stream()
+        List<Long> ids = films.stream()
                 .map(Film::getId)
                 .collect(Collectors.toList());
-        Map<Integer, Film> filmMap = films.stream()
+        Map<Long, Film> filmMap = films.stream()
                 .collect(Collectors.toMap(Film::getId, film -> film, (a, b) -> b));
         SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
         SqlRowSet sqlRowSet = namedJdbcTemplate.queryForRowSet(sqlGenres, parameters);
         while (sqlRowSet.next()) {
-            int filmId = sqlRowSet.getInt("film_id");
+            long filmId = sqlRowSet.getLong("film_id");
             int genreId = sqlRowSet.getInt("genre_id");
             String name = sqlRowSet.getString("name");
             filmMap.get(filmId).getGenres().add(new Genre(genreId, name));

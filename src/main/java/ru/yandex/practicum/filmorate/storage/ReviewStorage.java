@@ -9,11 +9,11 @@ public interface ReviewStorage {
 
     Review create(Review review);
     Optional<Review> update(Review review);
-    Optional<Review> deleteById(int id);
-    Optional<Review> getById(int id);
-    List<Review> getReviewsByFilmId(int filmId, int count);
-    void addLike(int reviewId, int userId, boolean like);
-    void removeLike(int reviewId, int userId, boolean like);
-    Boolean contains(int id, int userId, boolean like);
-    void updateUseful(int id, int likeCount);
+    Optional<Review> deleteById(long id);
+    Optional<Review> getById(long id);
+    List<Review> getReviewsByFilmId(long filmId, int count);
+    void addLike(long reviewId, long userId, boolean like);
+    void removeLike(long reviewId, long userId, boolean like);
+    Boolean contains(long id, long userId, boolean like);
+    void updateUseful(long id, int likeCount);
 }

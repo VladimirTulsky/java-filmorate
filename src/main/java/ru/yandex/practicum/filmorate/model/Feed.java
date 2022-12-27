@@ -8,10 +8,10 @@ import ru.yandex.practicum.filmorate.enums.OperationType;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Feed {
-    private Integer eventId;
-    private Integer entityId;
+    private Long eventId;
+    private Long entityId;
     private long timestamp;
-    private Integer userId;
+    private Long userId;
     private EventType eventType;
     private OperationType operation;
 }

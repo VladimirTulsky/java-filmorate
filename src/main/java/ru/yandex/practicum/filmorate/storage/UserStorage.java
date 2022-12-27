@@ -12,15 +12,15 @@ public interface UserStorage {
 
     User update(User user);
 
-    Optional<User> getById(int id);
+    Optional<User> getById(long id);
 
-    Optional<User> deleteById(int id);
+    int deleteById(long id);
 
-    List<Integer> followUser(int followingId, int followerId);
+    List<Long> followUser(long followingId, long followerId);
 
-    List<Integer> unfollowUser(int followingId, int followerId);
+    List<Long> unfollowUser(long followingId, long followerId);
 
-    List<User> getFriendsListById(int id);
+    List<User> getFriendsListById(long id);
 
-    List<User> getCommonFriendsList(int firstId, int secondId);
+    List<User> getCommonFriendsList(long firstId, long secondId);
 }

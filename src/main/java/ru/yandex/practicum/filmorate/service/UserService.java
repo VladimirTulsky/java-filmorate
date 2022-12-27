@@ -46,7 +46,7 @@ public class UserService {
         return userDbStorage.update(user);
     }
 
-    public User getById(int id) {
+    public User getById(long id) {
         log.info("Пользователь с id {} отправлен", id);
 
         return userDbStorage.getById(id).orElseThrow(() -> {
@@ -55,43 +55,40 @@ public class UserService {
         });
     }
 
-    public User deleteById(int id) {
-        log.info("Пользователь {} удален", id);
-
-        return userDbStorage.deleteById(id).orElseThrow(() -> {
-            log.warn("Пользователь не найден");
-            throw new ObjectNotFoundException("Пользователь не найден");
-        });
+    public void deleteById(long id) {
+        log.info("Удалить пользователя {}", id);
+        int result = userDbStorage.deleteById(id);
+        if (result == 0) throw new ObjectNotFoundException("Пользователь не найден");
     }
 
-    public List<Integer> followUser(int followerId, int followingId) {
+    public List<Long> followUser(long followerId, long followingId) {
         usersValidation(followerId, followingId);
         log.info("Пользователь {} подписался на {}", followerId, followingId);
         feedStorage.addFeed(followingId, followerId, Instant.now().toEpochMilli(), FRIEND, ADD);
         return userDbStorage.followUser(followerId, followingId);
     }
 
-    public List<Integer> unfollowUser(int followerId, int followingId) {
+    public List<Long> unfollowUser(long followerId, long followingId) {
         log.info("Пользователь {} отписался от {}", followerId, followingId);
         feedStorage.addFeed(followingId, followerId, Instant.now().toEpochMilli(), FRIEND, REMOVE);
         return userDbStorage.unfollowUser(followerId, followingId);
     }
 
-    public List<User> getFriendsListById(int id) {
+    public List<User> getFriendsListById(long id) {
         getById(id);
         log.info("Запрос получения списка друзей пользователя {} выполнен", id);
 
         return userDbStorage.getFriendsListById(id);
     }
 
-    public List<User> getCommonFriendsList(int firstId, int secondId) {
+    public List<User> getCommonFriendsList(long firstId, long secondId) {
         usersValidation(firstId, secondId);
         log.info("Список общих друзей {} и {} отправлен", firstId, secondId);
 
         return userDbStorage.getCommonFriendsList(firstId, secondId);
     }
 
-    public List<Film> getRecommendedFilms(int userId) {
+    public List<Film> getRecommendedFilms(long userId) {
         getById(userId);
         log.info("Запрошены рекомендации для пользователя с идентификатором {}", userId);
 
@@ -106,7 +103,7 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
     }
 
-    public void usersValidation(int followerId, int followingId) {
+    public void usersValidation(long followerId, long followingId) {
         getById(followerId);
         getById(followingId);
     }

@@ -34,7 +34,7 @@ public class DirectorService {
         return directorStorage.update(director);
     }
 
-    public Director getById(int id) {
+    public Director getById(long id) {
         log.info("Режиссер с id {} отправлен", id);
 
         return directorStorage.getById(id).orElseThrow(() -> {
@@ -43,12 +43,9 @@ public class DirectorService {
         });
     }
 
-    public Director deleteById(int id) {
-        log.info("Режиссер с id {} удален", id);
-
-        return directorStorage.deleteById(id).orElseThrow(() -> {
-            log.warn("Режиссер с идентификатором {} не найден.", id);
-            throw new ObjectNotFoundException("Режиссер не найден");
-        });
+    public void deleteById(long id) {
+        log.info("Удалить режиссера с id {}", id);
+        int result = directorStorage.deleteById(id);
+        if (result == 0) throw new ObjectNotFoundException("Режиссер не найден");
     }
 }

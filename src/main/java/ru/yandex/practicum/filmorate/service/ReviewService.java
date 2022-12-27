@@ -53,30 +53,30 @@ public class ReviewService {
         return review;
     }
 
-    public Review deleteById(int id) {
+    public void deleteById(long id) {
+        log.info("Удалить отзыв {}", id);
         Review review = reviewStorage.deleteById(id).orElseThrow(() -> {
             log.warn("Отзыв с идентификатором {} не найден", id);
             throw new ObjectNotFoundException("Отзыв не найден");
         });
         feedStorage.addFeed(review.getReviewId(), review.getUserId(), Instant.now().toEpochMilli(), REVIEW, REMOVE);
-        return review;
     }
 
-    public Review getById(int id) {
+    public Review getById(long id) {
         return reviewStorage.getById(id).orElseThrow(() -> {
             log.warn("Отзыв с идентификатором {} не найден", id);
             throw new ObjectNotFoundException("Отзыв не найден");
         });
     }
 
-    public List<Review> findAll(int filmId, int count) {
+    public List<Review> findAll(long filmId, int count) {
         List<Review> reviews = reviewStorage.getReviewsByFilmId(filmId, count);
         log.info(String.format("Список %d популярных отзывов: %s", count, reviews));
 
         return reviews;
     }
 
-    public Review addLike(int id, int userId) {
+    public Review addLike(long id, long userId) {
         if (!reviewStorage.contains(id, userId, true)) {
             if (!reviewStorage.contains(id, userId, false)) {
                 reviewStorage.updateUseful(id, 1);
@@ -89,7 +89,7 @@ public class ReviewService {
         return getById(id);
     }
 
-    public Review addDislike(int id, int userId) {
+    public Review addDislike(long id, long userId) {
         if (!reviewStorage.contains(id, userId, false)) {
             if (!reviewStorage.contains(id, userId, true)) {
                 reviewStorage.updateUseful(id, -1);
@@ -102,7 +102,7 @@ public class ReviewService {
         return getById(id);
     }
 
-    public Review removeLike(int id, int userId) {
+    public Review removeLike(long id, long userId) {
         if (reviewStorage.contains(id, userId, true)) {
             reviewStorage.removeLike(id, userId, true);
             reviewStorage.updateUseful(id, -1);
@@ -111,7 +111,7 @@ public class ReviewService {
         return getById(id);
     }
 
-    public Review removeDislike(int id, int userId) {
+    public Review removeDislike(long id, long userId) {
         if (reviewStorage.contains(id, userId, false)) {
             reviewStorage.removeLike(id, userId, false);
             reviewStorage.updateUseful(id, 1);

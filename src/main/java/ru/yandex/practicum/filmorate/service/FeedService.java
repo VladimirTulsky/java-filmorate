@@ -19,7 +19,7 @@ public class FeedService {
     private final FeedStorage feedStorage;
     private final UserStorage userStorage;
 
-    public List<Feed> getFeed(int id) {
+    public List<Feed> getFeed(long id) {
         userStorage.getById(id).orElseThrow(()-> {
            log.warn("Пользователь не существует");
            throw new ObjectNotFoundException("Пользователь не существует");

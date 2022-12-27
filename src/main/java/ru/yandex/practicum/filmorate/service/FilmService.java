@@ -53,7 +53,7 @@ public class FilmService {
         return filmStorage.update(film);
     }
 
-    public Film getById(int id) {
+    public Film getById(long id) {
         Film film = filmStorage.getById(id).orElseThrow(() -> {
             log.warn("Фильм с идентификатором {} не найден.", id);
             throw new ObjectNotFoundException("Фильм не найден");
@@ -65,16 +65,13 @@ public class FilmService {
         return film;
     }
 
-    public Film deleteById(int id) {
-        log.info("Фильм {} удален", id);
-
-        return filmStorage.deleteById(id).orElseThrow(() -> {
-            log.warn("Фильм не найден");
-            throw new ObjectNotFoundException("Фильм не найден");
-        });
+    public void deleteById(long id) {
+        log.info("Удалить фильм {}", id);
+        int result = filmStorage.deleteById(id);
+        if (result == 0) throw new ObjectNotFoundException("Фильм не найден");
     }
 
-    public Film addLike(int filmId, int userId) {
+    public Film addLike(long filmId, long userId) {
         if (filmStorage.getById(filmId).isEmpty() || userStorage.getById(userId).isEmpty()) {
             log.warn("Пользователь c id {} или фильм с id {} не найден.", userId, filmId);
             throw new ObjectNotFoundException("Пользователь или фильм не найдены");
@@ -84,7 +81,7 @@ public class FilmService {
         return filmStorage.addLike(filmId, userId).orElseThrow();
     }
 
-    public Film removeLike(int filmId, int userId) {
+    public Film removeLike(long filmId, long userId) {
         if (userStorage.getById(userId).isEmpty()) {
             log.warn("Пользователь {} не найден.", userId);
             throw new ObjectNotFoundException("Пользователь не найден");
@@ -108,7 +105,7 @@ public class FilmService {
         return films;
     }
 
-    public List<Film> getAllByDirector(int directorId, String sortBy) {
+    public List<Film> getAllByDirector(long directorId, String sortBy) {
         log.info("Отправлен список фильмов, отсортированный по {} ", sortBy);
         directorStorage.getById(directorId).orElseThrow(() -> {
             log.warn("Режиссер с id {} не найден", directorId);
@@ -121,7 +118,7 @@ public class FilmService {
         return films;
     }
 
-    public List<Film> getCommonFilms(int userId, int friendId) {
+    public List<Film> getCommonFilms(long userId, long friendId) {
         userStorage.getById(userId).orElseThrow(() -> {
             log.warn("Пользователь с id {} не найден", userId);
             throw new ObjectNotFoundException("Пользователь не найден");

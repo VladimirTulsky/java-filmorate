@@ -33,8 +33,8 @@ public class ReviewDbStorage implements ReviewStorage {
             PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"review_id"});
             stmt.setString(1, review.getContent());
             stmt.setBoolean(2, review.getIsPositive());
-            stmt.setInt(3, review.getUserId());
-            stmt.setInt(4, review.getFilmId());
+            stmt.setLong(3, review.getUserId());
+            stmt.setLong(4, review.getFilmId());
             stmt.setInt(5, 0);
             return stmt;
         }, keyHolder);
@@ -55,7 +55,7 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public Optional<Review> deleteById(int id) {
+    public Optional<Review> deleteById(long id) {
         Optional<Review> review = getById(id);
         String sql = "DELETE FROM reviews WHERE REVIEW_ID = ?";
         jdbcTemplate.update(sql, id);
@@ -64,7 +64,7 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public Optional<Review> getById(int id) {
+    public Optional<Review> getById(long id) {
         String sql = "SELECT * FROM reviews WHERE REVIEW_ID = ?";
         try {
             return Optional.ofNullable(jdbcTemplate.queryForObject(sql, ReviewDbStorage::makeReview, id));
@@ -74,7 +74,7 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public List<Review> getReviewsByFilmId(int filmId, int count) {
+    public List<Review> getReviewsByFilmId(long filmId, int count) {
         String sqlAll = "SELECT * FROM reviews ORDER BY USEFUL DESC LIMIT ?";
         String sql = "SELECT * FROM reviews WHERE FILM_ID=? ORDER BY USEFUL DESC LIMIT ?";
         if (filmId == -1) {
@@ -85,42 +85,42 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public void addLike(int reviewId, int userId, boolean like) {
+    public void addLike(long reviewId, long userId, boolean like) {
         String sql = "MERGE INTO REVIEWS_LIKES (REVIEW_ID, USER_ID, IS_POSITIVE) VALUES(?,?,?)";
         jdbcTemplate.update(sql, reviewId, userId, like);
     }
 
     @Override
-    public void removeLike(int reviewId, int userId, boolean like) {
+    public void removeLike(long reviewId, long userId, boolean like) {
         String sql = "DELETE FROM REVIEWS_LIKES WHERE REVIEW_ID=? AND USER_ID=? AND IS_POSITIVE=?";
         jdbcTemplate.update(sql, reviewId, userId, like);
     }
 
     @Override
-    public Boolean contains(int id, int userId, boolean like) {
+    public Boolean contains(long id, long userId, boolean like) {
         String sql = "SELECT * FROM REVIEWS_LIKES WHERE REVIEW_ID=? AND USER_ID=? AND IS_POSITIVE=?";
         var rows = jdbcTemplate.queryForRowSet(sql, id, userId, like);
         return rows.isBeforeFirst();
     }
 
     @Override
-    public void updateUseful(int id, int likeCount) {
+    public void updateUseful(long id, int likeCount) {
         String sql = "UPDATE reviews SET USEFUL=USEFUL+? WHERE REVIEW_ID=?";
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection
                     .prepareStatement(sql);
-            ps.setLong(1, likeCount);
+            ps.setInt(1, likeCount);
             ps.setLong(2, id);
             return ps;
         });
     }
 
     static Review makeReview(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("review_id");
+        long id = rs.getLong("review_id");
         String content = rs.getString("content");
         Boolean isPositive = rs.getBoolean("is_positive");
-        int userId = rs.getInt("user_id");
-        int filmId = rs.getInt("film_id");
+        long userId = rs.getLong("user_id");
+        long filmId = rs.getLong("film_id");
         int useful = rs.getInt("useful");
 
         return new Review(id, content, isPositive, userId, filmId, useful);
