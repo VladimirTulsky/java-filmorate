@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class User {
 
     @PositiveOrZero
-    private int id;
+    private long id;
     @NotBlank(message = "Отсутствует email")
     @Email(message = "Некорректный email")
     @Size(max = 50)

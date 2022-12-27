@@ -16,10 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -28,7 +25,7 @@ public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public Collection<User> findAll() {
+    public List<User> findAll() {
         String sql = "select * from USERS";
 
         return jdbcTemplate.query(sql, UserDbStorage::makeUser);
@@ -47,7 +44,7 @@ public class UserDbStorage implements UserStorage {
             stmt.setDate(4, Date.valueOf(user.getBirthday()));
             return stmt;
         }, keyHolder);
-        user.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+        user.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
 
         return user;
     }
@@ -63,7 +60,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public Optional<User> getById(int id) {
+    public Optional<User> getById(long id) {
         String sql = "select * from USERS where USER_ID = ?";
         try {
             return Optional.ofNullable(jdbcTemplate.queryForObject(sql, UserDbStorage::makeUser, id));
@@ -73,25 +70,21 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public Optional<User> deleteById(int id) {
-        String sql = "delete from USERS where USER_ID = ?";
-        Optional<User> user = getById(id);
-        jdbcTemplate.update(sql, id);
-
-        return user;
+    public int deleteById(long id) {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        return jdbcTemplate.update(sql, id);
     }
 
     @Override
-    public List<Integer> followUser(int followerId, int followingId) {
+    public List<Long> followUser(long followerId, long followingId) {
         String sqlForWrite = "MERGE INTO FRIENDSHIP (USER_ID, FRIEND_ID) " +
                 "VALUES (?, ?)";
         jdbcTemplate.update(sqlForWrite, followerId, followingId);
-
         return List.of(followerId, followingId);
     }
 
     @Override
-    public List<Integer> unfollowUser(int followerId, int followingId) {
+    public List<Long> unfollowUser(long followerId, long followingId) {
         String sql = "DELETE FROM FRIENDSHIP WHERE USER_ID = ? AND FRIEND_ID = ?";
         jdbcTemplate.update(sql, followerId, followingId);
 
@@ -99,7 +92,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getFriendsListById(int id) {
+    public List<User> getFriendsListById(long id) {
         String sql = "SELECT USERS.USER_ID, email, login, name, birthday " +
                 "FROM USERS " +
                 "LEFT JOIN friendship f on users.USER_ID = f.friend_id " +
@@ -109,7 +102,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getCommonFriendsList(int firstId, int secondId) {
+    public List<User> getCommonFriendsList(long firstId, long secondId) {
         String sql = "SELECT u.USER_ID, email, login, name, birthday " +
                 "FROM friendship AS f " +
                 "LEFT JOIN users u ON u.USER_ID = f.friend_id " +
@@ -123,7 +116,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     static User makeUser(ResultSet rs, int rowNum) throws SQLException {
-        int id = rs.getInt("user_id");
+        long id = rs.getLong("user_id");
         String email = rs.getString("email");
         String login = rs.getString("login");
         String name = rs.getString("name");

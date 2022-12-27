@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
-import java.util.Collection;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -17,7 +17,7 @@ public class MpaService {
 
     private final MpaStorage mpaDbStorage;
 
-    public Collection<Mpa> findAll() {
+    public List<Mpa> findAll() {
         log.info("Список рейтингов отправлен");
 
         return mpaDbStorage.findAll();
