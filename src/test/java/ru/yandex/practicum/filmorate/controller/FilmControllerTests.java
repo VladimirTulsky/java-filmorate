@@ -33,8 +33,8 @@ public class FilmControllerTests {
     private final UserDbStorage userDbStorage;
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
-    private final Film film = new Film(1, "Film", "good film", LocalDate.of(2020, 5, 5), 120, new Mpa(1, "G"), null);
-    private final Film film2 = new Film(2, "2 Film", "good film 2", LocalDate.of(2019, 5, 5), 111, new Mpa(2, "PG"), null);
+    private final Film film = new Film(1, "Film", "good film", LocalDate.of(2020, 5, 5), 120, new Mpa(1, "G"), null, null);
+    private final Film film2 = new Film(2, "2 Film", "good film 2", LocalDate.of(2019, 5, 5), 111, new Mpa(2, "PG"), null, null);
     private final User user = new User(1, "test@test.com", "login", "name", LocalDate.of(1995, 5, 5));
 
 
@@ -214,7 +214,9 @@ public class FilmControllerTests {
                         get("/films/popular")
                 )
                 .andExpect(status().isOk())
-                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2).get(0).getName(), "2 Film"))
-                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2).get(1).getName(), "Film"));
+                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2, null, null)
+                        .get(0).getName(), "2 Film"))
+                .andExpect(result -> assertEquals(filmDbStorage.getBestFilms(2, null, null)
+                        .get(1).getName(), "Film"));
     }
 }
