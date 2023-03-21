@@ -1,6 +1,16 @@
 # java-filmorate
 
-Template repository for Filmorate project.
-![SQL scheme](https://user-images.githubusercontent.com/75275490/206796660-00a293f4-aec1-49c8-a0a6-dc8c2c60fa9a.png)
+Функциональность:
+1. хранит список фильмов
+2. позволяет оставлять отзывы и комментарии
+3. выгружать фильмы по рейтингу и популярности
+4. создавать мероприятия
+5. подписываться на других пользователей
+6. выгружать рекомендации, основанные на подписках
 
-My SQL scheme for filmorate project
+В проекте используется стек технологий:
+1. PostgreSQL - для хранения и выгрузки данных
+2. Spring Boot и сборка через Maven
+3. REST API
+4. JDBC для работы с БД
+5. MockMvc для тестов
